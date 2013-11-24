@@ -1,100 +1,149 @@
 import re
 
+INDENT = '    '
+
 class Conf(object):
-	def __init__(self, blocks=[]):
-		self.blocks = list(blocks)
+	def __init__(self, *args):
+		self.blocks = list(args)
+		self.servers = []
+		self.upd()
 
-	def append(self, obj):
-		self.blocks.append(obj)
+	def add(self, *args):
+		self.blocks.extend(args)
+		self.upd()
 		return self.blocks
 
-	def server(self):
-		# Convenience function. Return all Server objects
-		ret = []
-		for x in self.blocks:
-			ret.append(x if isinstance(x, Server) else None)
-		return (ret[0] if len(ret) == 1 else (ret if ret else None))
-
-	def get_all(self):
+	def remove(self, *args):
+		self.blocks.remove(*args)
+		self.upd()
 		return self.blocks
 
-	def get_as_list(self):
+	def upd(self):
+		svr = []
+		for x in self.blocks:
+			if isinstance(x, Server):
+				svr.append(x)
+		self.servers = svr
+
+	def all(self):
+		return self.blocks
+
+	def as_list(self):
 		ret = []
 		for x in self.blocks:
-			ret.append(x.get_as_list())
+			ret.append(x.as_list())
 		return ret
 
-	def get_as_block(self):
+	def as_block(self):
 		ret = []
 		for x in self.blocks:
 			if isinstance(x, (Key, Comment)):
-				ret.append(x.get_as_block())
+				ret.append(x.as_block())
 			else:
-				for y in x.get_as_block():
+				for y in x.as_block():
 					ret.append(y)
 		return ret
 
 
 class Server(object):
-	def __init__(self, blocks=[]):
-		self.blocks = list(blocks)
+	def __init__(self, *args):
+		self.blocks = list(args)
+		self.locations = []
+		self.comments = []
+		self.keys = []
+		self.upd()
 
-	def append(self, obj):
-		self.blocks.append(obj)
+	def add(self, *args):
+		self.blocks.extend(args)
+		self.upd()
 		return self.blocks
 
-	def get_all(self):
+	def remove(self, *args):
+		self.blocks.remove(*args)
+		self.upd()
 		return self.blocks
 
-	def get_as_list(self):
+	def upd(self):
+		l, c, k = [], [], []
+		for x in self.blocks:
+			if isinstance(x, Location):
+				l.append(x)
+			elif isinstance(x, Comment):
+				c.append(x)
+			elif isinstance(x, Key):
+				k.append(x)
+		self.locations, self.comments, self.keys = l, c, k
+
+	def all(self):
+		return self.blocks
+
+	def as_list(self):
 		ret = []
 		for x in self.blocks:
-			ret.append(x.get_as_list())
+			ret.append(x.as_list())
 		return ['server', '', ret]
 
-	def get_as_block(self):
+	def as_block(self):
 		ret = []
 		ret.append('server {\n')
 		for x in self.blocks:
 			if isinstance(x, (Key, Comment)):
-				ret.append('\t' + x.get_as_block())
+				ret.append(INDENT + x.as_block())
 			elif isinstance(x, Container):
-				y = x.get_as_block()
-				ret.append('\n\t'+y[0])
+				y = x.as_block()
+				ret.append('\n'+INDENT+y[0])
 				for z in y[1:]:
-					ret.append('\t'+z)
+					ret.append(INDENT+z)
 		ret.append('}\n')
 		return ret
 
 
 class Container(object):
-	def __init__(self, value, blocks=[]):
+	def __init__(self, value, *args):
 		self.name = ''
 		self.value = value
-		self.blocks = list(blocks)
+		self.comments = []
+		self.keys = []
+		self.blocks = list(args)
+		self.upd()
 
-	def append(self, obj):
-		self.blocks.append(obj)
+	def add(self, *args):
+		self.blocks.extend(args)
+		self.upd()
 		return self.blocks
 
-	def get_all(self):
+	def remove(self, *args):
+		self.blocks.remove(*args)
+		self.upd()
 		return self.blocks
 
-	def get_as_list(self):
+	def upd(self):
+		c, k = [], []
+		for x in self.blocks:
+			if isinstance(x, Comment):
+				c.append(x)
+			elif isinstance(x, Key):
+				k.append(x)
+		self.comments, self.keys = c, k
+
+	def all(self):
+		return self.blocks
+
+	def as_list(self):
 		ret = []
 		for x in self.blocks:
-			ret.append(x.get_as_list())
+			ret.append(x.as_list())
 		return [self.name, self.value, ret]
 
-	def get_as_block(self):
+	def as_block(self):
 		ret = []
 		ret.append(self.name + ' ' + self.value + ' {\n')
 		for x in self.blocks:
 			if isinstance(x, (Key, Comment)):
-				ret.append('\t' + x.get_as_block())
+				ret.append(INDENT + x.as_block())
 			else:
-				y = x.get_as_block()
-				ret.append('\t'+y)
+				y = x.as_block()
+				ret.append(INDENT+y)
 		ret.append('}\n\n')
 		return ret
 
@@ -103,16 +152,16 @@ class Comment(object):
 	def __init__(self, comment):
 		self.comment = comment
 
-	def get_as_list(self):
+	def as_list(self):
 		return [self.comment]
 
-	def get_as_block(self):
+	def as_block(self):
 		return '# ' + self.comment + '\n'
 
 
 class Location(Container):
-	def __init__(self, value, blocks=[]):
-		super(Location, self).__init__(value, blocks)
+	def __init__(self, value, *args):
+		super(Location, self).__init__(value, *args)
 		self.name = 'location'
 
 
@@ -137,16 +186,16 @@ class Key(object):
 		self.name = name
 		self.value = value
 
-	def get_as_list(self):
+	def as_list(self):
 		return [self.name, self.value]
 
-	def get_as_block(self):
+	def as_block(self):
 		return self.name + ' ' + self.value + ';\n'
 
 
 def test():
-	return Server([Comment('This is a test comment'), Key('server_name', 'localhost'),
-		Key('root', '/var/www'), Location('/', [Key('test', 'true')])])
+	return Conf(Server(Comment('This is a test comment'), Key('server_name', 'localhost'),
+		Key('root', '/var/www'), Location('/', Key('test', 'true'), Key('test2', 'false'))))
 
 def loads(data):
 	f = Conf()
@@ -161,22 +210,22 @@ def loads(data):
 			lopen.insert(0, l)
 		elif re.match('.*}$', line):
 			if isinstance(lopen[0], Server):
-				f.append(lopen[0])
+				f.add(lopen[0])
 				lopen.pop(0)
 			elif isinstance(lopen[0], Location):
 				l = lopen[0]
 				lopen.pop(0)
-				lopen[0].append(l)
-		elif re.match('^\s*# ', line):
-			c = Comment(re.match('^\s*# (.*)$', line).group(1))
+				lopen[0].add(l)
+		elif re.match('^\s*#\s*', line):
+			c = Comment(re.match('^\s*#\s*(.*)$', line).group(1))
 			if len(lopen):
-				lopen[0].append(c)
+				lopen[0].add(c)
 			else:
-				f.append(c)
+				f.add(c)
 		elif re.match('.*;$', line):
 			kname, kval = re.match('^\s*(.*) (.*);$', line).group(1, 2)
 			k = Key(kname, kval)
-			lopen[0].append(k)
+			lopen[0].add(k)
 	return f
 
 def load(fobj):
@@ -186,7 +235,7 @@ def loadf(path):
 	return load(open(path, 'r'))
 
 def dumps(obj):
-	return ''.join(obj.get_as_block())
+	return ''.join(obj.as_block())
 
 def dump(obj, fobj):
 	fobj.write(dumps(obj))
