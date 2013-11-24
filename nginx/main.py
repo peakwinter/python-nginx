@@ -171,7 +171,7 @@ class Container(object):
 			else:
 				y = x.as_block()
 				ret.append(INDENT+y)
-		ret.append('}\n\n')
+		ret.append('}\n')
 		return ret
 
 
@@ -234,8 +234,8 @@ class Key(object):
 		return self.name + ' ' + self.value + ';\n'
 
 
-def loads(data):
-	f = Conf()
+def loads(data, conf=True):
+	f = Conf() if conf else []
 	lopen = []
 	for line in data.split('\n'):
 		if re.match('\s*server\s*{', line):
@@ -257,7 +257,7 @@ def loads(data):
 			closenum = len(re.findall('}', line))
 			while closenum > 0:
 				if isinstance(lopen[0], Server):
-					f.add(lopen[0])
+					f.add(lopen[0]) if conf else f.append(lopen[0])
 					lopen.pop(0)
 				elif isinstance(lopen[0], Container):
 					c = lopen[0]
@@ -265,14 +265,14 @@ def loads(data):
 					if lopen:
 						lopen[0].add(c)
 					else:
-						f.add(c)
+						f.add(c) if conf else f.append(c)
 				closenum = closenum - 1
 		if re.match('\s*#\s*', line):
 			c = Comment(re.match('\s*#\s*(.*)$', line).group(1))
 			if len(lopen):
 				lopen[0].add(c)
 			else:
-				f.add(c)
+				f.add(c) if conf else f.append(c)
 	return f
 
 def load(fobj):
