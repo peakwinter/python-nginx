@@ -193,39 +193,38 @@ class Key(object):
 		return self.name + ' ' + self.value + ';\n'
 
 
-def test():
-	return Conf(Server(Comment('This is a test comment'), Key('server_name', 'localhost'),
-		Key('root', '/var/www'), Location('/', Key('test', 'true'), Key('test2', 'false'))))
-
 def loads(data):
 	f = Conf()
 	lopen = []
 	for line in data.split('\n'):
-		if re.match('^\s*server {$', line):
+		if re.match('\s*server\s*{', line):
 			s = Server()
 			lopen.insert(0, s)
-		elif re.match('^\s*location .*{$', line):
-			lpath = re.match('^\s*location (.*) {$', line).group(1)
+		if re.match('\s*location.*{', line):
+			lpath = re.match('\s*location\s*(.*)\s*{', line).group(1)
 			l = Location(lpath)
 			lopen.insert(0, l)
-		elif re.match('.*}$', line):
-			if isinstance(lopen[0], Server):
-				f.add(lopen[0])
-				lopen.pop(0)
-			elif isinstance(lopen[0], Location):
-				l = lopen[0]
-				lopen.pop(0)
-				lopen[0].add(l)
-		elif re.match('^\s*#\s*', line):
-			c = Comment(re.match('^\s*#\s*(.*)$', line).group(1))
+		if re.match('.*;', line):
+			kname, kval = re.match('.*(?:^|{\s*)(\S+)\s(.+);', line).group(1, 2)
+			k = Key(kname, kval)
+			lopen[0].add(k)
+		if re.match('.*}', line):
+			closenum = len(re.findall('}', line))
+			while closenum > 0:
+				if isinstance(lopen[0], Server):
+					f.add(lopen[0])
+					lopen.pop(0)
+				elif isinstance(lopen[0], Location):
+					l = lopen[0]
+					lopen.pop(0)
+					lopen[0].add(l)
+				closenum = closenum - 1
+		if re.match('\s*#\s*', line):
+			c = Comment(re.match('\s*#\s*(.*)$', line).group(1))
 			if len(lopen):
 				lopen[0].add(c)
 			else:
 				f.add(c)
-		elif re.match('.*;$', line):
-			kname, kval = re.match('^\s*(.*) (.*);$', line).group(1, 2)
-			k = Key(kname, kval)
-			lopen[0].add(k)
 	return f
 
 def load(fobj):
