@@ -7,6 +7,7 @@ def test():
 def messy():
 	return nginx.loads("""
 		# This is an example of a messy config
+		upstream php { server unix:/tmp/php-cgi.socket; }
 		server { server_name localhost; #this is the server server_name
 		location /{ test_key test_value; }}
 		""")
