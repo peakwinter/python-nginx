@@ -18,6 +18,15 @@ class Conf(object):
 		self.upd()
 		return self.blocks
 
+	def filter(self, btype='', name=''):
+		flist = []
+		for x in self.blocks:
+			if name and isinstance(x, Key) and x.name == name:
+				flist.append(x)
+			elif not name and btype and x.__class__.__name__ == btype:
+				flist.append(x)
+		return flist
+
 	def upd(self):
 		svr = []
 		for x in self.blocks:
@@ -33,6 +42,9 @@ class Conf(object):
 		for x in self.blocks:
 			ret.append(x.as_list())
 		return ret
+
+	def as_dict(self):
+		return {'conf': [x.as_dict() for x in self.blocks]}
 
 	def as_block(self):
 		ret = []
@@ -63,6 +75,15 @@ class Server(object):
 		self.upd()
 		return self.blocks
 
+	def filter(self, btype='', name=''):
+		flist = []
+		for x in self.blocks:
+			if name and isinstance(x, Key) and x.name == name:
+				flist.append(x)
+			elif not name and btype and x.__class__.__name__ == btype:
+				flist.append(x)
+		return flist
+
 	def upd(self):
 		l, c, k = [], [], []
 		for x in self.blocks:
@@ -82,6 +103,9 @@ class Server(object):
 		for x in self.blocks:
 			ret.append(x.as_list())
 		return ['server', '', ret]
+
+	def as_dict(self):
+		return {'server': [x.as_dict() for x in self.blocks]}
 
 	def as_block(self):
 		ret = []
@@ -135,6 +159,9 @@ class Container(object):
 			ret.append(x.as_list())
 		return [self.name, self.value, ret]
 
+	def as_dict(self):
+		return {self.name+' '+self.value: [x.as_dict() for x in self.blocks]}
+
 	def as_block(self):
 		ret = []
 		ret.append(self.name + ' ' + self.value + ' {\n')
@@ -154,6 +181,9 @@ class Comment(object):
 
 	def as_list(self):
 		return [self.comment]
+
+	def as_dict(self):
+		return {'#': self.comment}
 
 	def as_block(self):
 		return '# ' + self.comment + '\n'
@@ -196,6 +226,9 @@ class Key(object):
 
 	def as_list(self):
 		return [self.name, self.value]
+
+	def as_dict(self):
+		return {self.name: self.value}
 
 	def as_block(self):
 		return self.name + ' ' + self.value + ';\n'
