@@ -14,7 +14,8 @@ class Conf(object):
 		return self.blocks
 
 	def remove(self, *args):
-		self.blocks.remove(*args)
+		for x in args:
+			self.blocks.remove(x)
 		self.upd()
 		return self.blocks
 
@@ -71,7 +72,8 @@ class Server(object):
 		return self.blocks
 
 	def remove(self, *args):
-		self.blocks.remove(*args)
+		for x in args:
+			self.blocks.remove(x)
 		self.upd()
 		return self.blocks
 
@@ -137,7 +139,8 @@ class Container(object):
 		return self.blocks
 
 	def remove(self, *args):
-		self.blocks.remove(*args)
+		for x in args:
+			self.blocks.remove(x)
 		self.upd()
 		return self.blocks
 
