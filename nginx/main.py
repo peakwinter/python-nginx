@@ -24,6 +24,8 @@ class Conf(object):
 		for x in self.blocks:
 			if name and isinstance(x, Key) and x.name == name:
 				flist.append(x)
+			elif isinstance(x, Container) and x.__class__.__name__ == btype and x.value == name:
+				flist.append(x)
 			elif not name and btype and x.__class__.__name__ == btype:
 				flist.append(x)
 		return flist
@@ -81,6 +83,8 @@ class Server(object):
 		flist = []
 		for x in self.blocks:
 			if name and isinstance(x, Key) and x.name == name:
+				flist.append(x)
+			elif isinstance(x, Container) and x.__class__.__name__ == btype and x.value == name:
 				flist.append(x)
 			elif not name and btype and x.__class__.__name__ == btype:
 				flist.append(x)
