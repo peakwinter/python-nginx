@@ -175,6 +175,11 @@ class Container(object):
 		for x in self.blocks:
 			if isinstance(x, (Key, Comment)):
 				ret.append(INDENT + x.as_block())
+			elif isinstance(x, Container):
+				y = x.as_block()
+				ret.append('\n'+INDENT+INDENT+y[0])
+				for z in y[1:]:
+					ret.append(INDENT+z)
 			else:
 				y = x.as_block()
 				ret.append(INDENT+y)
@@ -252,6 +257,10 @@ def loads(data, conf=True):
 			lpath = re.match('\s*location\s*(.*\S+)\s*{', line).group(1)
 			l = Location(lpath)
 			lopen.insert(0, l)
+		if re.match('\s*if.*{', line):
+			ifs = re.match('\s*if\s*(.*\S+)\s*{', line).group(1)
+			ifs = If(ifs)
+			lopen.insert(0, ifs)
 		if re.match('\s*upstream.*{', line):
 			ups = re.match('\s*upstream\s*(.*\S+)\s*{', line).group(1)
 			u = Upstream(ups)
