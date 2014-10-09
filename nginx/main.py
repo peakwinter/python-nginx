@@ -295,7 +295,8 @@ def load(fobj):
 	return loads(fobj.read())
 
 def loadf(path):
-	return load(open(path, 'r'))
+	with open(path, 'r') as f:
+		return load(f)
 
 def dumps(obj):
 	return ''.join(obj.as_block())
@@ -305,5 +306,6 @@ def dump(obj, fobj):
 	return fobj
 
 def dumpf(obj, path):
-	dump(obj, open(path, 'w'))
+	with open(path, 'w') as f:
+		dump(obj, f)
 	return path
