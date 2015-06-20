@@ -1,4 +1,4 @@
-import nginx.main as nginx
+import nginx
 
 def test():
 	return nginx.Conf(nginx.Server(nginx.Comment('This is a test comment'), nginx.Key('server_name', 'localhost'),
