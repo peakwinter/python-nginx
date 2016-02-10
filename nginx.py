@@ -253,23 +253,29 @@ def loads(data, conf=True):
         if re.match('\s*server\s*{', line):
             s = Server()
             lopen.insert(0, s)
-        if re.match('\s*location.*{', line):
+        elif re.match('\s*location.*{', line):
             lpath = re.match('\s*location\s*(.*\S+)\s*{', line).group(1)
             l = Location(lpath)
             lopen.insert(0, l)
-        if re.match('\s*if.*{', line):
+        elif re.match('\s*if.*{', line):
             ifs = re.match('\s*if\s*(.*\S+)\s*{', line).group(1)
             ifs = If(ifs)
             lopen.insert(0, ifs)
-        if re.match('\s*upstream.*{', line):
+        elif re.match('\s*upstream.*{', line):
             ups = re.match('\s*upstream\s*(.*\S+)\s*{', line).group(1)
             u = Upstream(ups)
             lopen.insert(0, u)
-        if re.match('.*;', line):
+        elif re.match('\s*#\s*', line):
+            c = Comment(re.match('\s*#\s*(.*)$', line).group(1))
+            if len(lopen):
+                lopen[0].add(c)
+            else:
+                f.add(c) if conf else f.append(c)
+        elif re.match('.*;', line):
             kname, kval = re.match('.*(?:^|^\s*|{\s*)(\S+)\s(.+);', line).group(1, 2)
             k = Key(kname, kval)
             lopen[0].add(k)
-        if re.match('.*}', line):
+        elif re.match('.*}', line):
             closenum = len(re.findall('}', line))
             while closenum > 0:
                 if isinstance(lopen[0], Server):
@@ -283,12 +289,6 @@ def loads(data, conf=True):
                     else:
                         f.add(c) if conf else f.append(c)
                 closenum = closenum - 1
-        if re.match('\s*#\s*', line):
-            c = Comment(re.match('\s*#\s*(.*)$', line).group(1))
-            if len(lopen):
-                lopen[0].add(c)
-            else:
-                f.add(c) if conf else f.append(c)
     return f
 
 def load(fobj):
