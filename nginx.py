@@ -167,11 +167,11 @@ class Container(object):
         return [self.name, self.value, ret]
 
     def as_dict(self):
-        return {'{} {}'.format(self.name, self.value): [x.as_dict() for x in self.blocks]}
+        return {'{0} {1}'.format(self.name, self.value): [x.as_dict() for x in self.blocks]}
 
     def as_block(self):
         ret = []
-        ret.append('{} {} {{\n'.format(self.name, self.value))
+        ret.append('{0} {1} {{\n'.format(self.name, self.value))
         for x in self.blocks:
             if isinstance(x, (Key, Comment)):
                 ret.append(INDENT + x.as_block())
@@ -198,7 +198,7 @@ class Comment(object):
         return {'#': self.comment}
 
     def as_block(self):
-        return '# {}\n'.format(self.comment)
+        return '# {0}\n'.format(self.comment)
 
 
 class Location(Container):
@@ -243,7 +243,7 @@ class Key(object):
         return {self.name: self.value}
 
     def as_block(self):
-        return '{} {};\n'.format(self.name, self.value)
+        return '{0} {1};\n'.format(self.name, self.value)
 
 
 def loads(data, conf=True):
@@ -267,8 +267,9 @@ def loads(data, conf=True):
             lopen.insert(0, u)
         if re.match('.*;', line):
             kname, kval = re.match('.*(?:^|^\s*|{\s*)(\S+)\s(.+);', line).group(1, 2)
-            k = Key(kname, kval)
-            lopen[0].add(k)
+            if "#" not in kname:
+                k = Key(kname, kval)
+                lopen[0].add(k)
         if re.match('.*}', line):
             closenum = len(re.findall('}', line))
             while closenum > 0:
