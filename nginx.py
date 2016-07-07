@@ -231,6 +231,16 @@ class Upstream(Container):
         self.name = 'upstream'
 
 
+class Geo(Container):
+    """
+    Container for geo module configuration
+    See docs here: http://nginx.org/en/docs/http/ngx_http_geo_module.html
+    """
+    def __init__(self, value, *args):
+        super(Geo, self).__init__(value, *args)
+        self.name = 'geo'
+
+
 class Key(object):
     def __init__(self, name, value):
         self.name = name
@@ -265,6 +275,10 @@ def loads(data, conf=True):
             ups = re.match('\s*upstream\s*(.*\S+)\s*{', line).group(1)
             u = Upstream(ups)
             lopen.insert(0, u)
+        if re.match('\s*geo\s*\$.*\s{', line):
+            geo = re.match('\s*geo\s+(\$.*)\s{', line).group(1)
+            s = Geo(geo)
+            lopen.insert(0, s)
         if re.match('.*;', line):
             kname, kval = re.match('.*(?:^|^\s*|{\s*)(\S+)\s(.+);', line).group(1, 2)
             if "#" not in kname:
