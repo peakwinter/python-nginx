@@ -10,10 +10,10 @@ setup(
     author_email='jacob@peakwinter.net',
     url='https://github.com/peakwinter/python-nginx',
     py_modules=['nginx'],
-    keywords = ['nginx', 'web servers', 'serverblock', 'server block'],
-    download_url = 'https://github.com/peakwinter/python-nginx/archive/0.2.tar.gz',
-    license = 'GPLv3',
-    classifiers = [
+    keywords=['nginx', 'web servers', 'serverblock', 'server block'],
+    download_url='https://git.coderouge.co/coderouge/python-nginx/repository/archive.zip?ref=master',
+    license='GPLv3',
+    classifiers=[
         "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: Unix",

@@ -37,18 +37,18 @@ Load an nginx serverblock from a file:
 
     >>> import nginx
     >>> c = nginx.loadf('/etc/nginx/sites-available/testsite')
-    >>> c.all()
+    >>> c.children
     [<main.Server object at 0x7f1ed4573890>]
-    >>> c.servers[0].all()
+    >>> c.server.children
     [<main.Comment object at 0x7f1ed45736d0>, <main.Key object at 0x7f1ed4573750>, <main.Key object at 0x7f1ed4573790>, <main.Location object at 0x7f1ed4573850>]
-    >>> c.as_dict()
+    >>> c.as_dict
     {'conf': [{'server': [{'#': 'This is a test comment'}, {'server_name': 'localhost'}, {'root': '/srv/http'}, {'location /': [{'allow': 'all'}]}]}]}
 
 Format an nginx serverblock into a string (change the amount of spaces (or tabs) for each indentation level by modifying `nginx.INDENT` first):
 
-    >>> c.all()
+    >>> c.servers
     [<main.Server object at 0x7f1ed4573890>]
-    >>> c.as_block()
+    >>> c.as_strings
     ['server {\n', '    # This is a test comment\n', '    server_name localhost;\n', '    root /srv/http;\n', '\n    location / {\n', '        allow all;\n', '    }\n\n', '}\n']
 
 Find where you put your keys:

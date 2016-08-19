@@ -1,0 +1,20 @@
+# Change Log
+All notable changes to this project will be documented in this file.
+This project adheres to [Semantic Versioning](http://semver.org/).
+
+## [1.0.0] - 2016-08-19
+### Changed
+- Some API changes:
+  - `all()` methods replaced with `children` property
+  - `as_list()` methods replaced with `as_list` property
+  - `as_dict()` methods replaced with `as_dict` property
+  - `as_block()` methods replaced with `as_strings` property
+  - `conf.server` convenience property, for getting first server found in the Conf
+- Added `inline` property to `Comment`: set to `True` if you want the comment to be appended to the end of the previous line on dump
+- Added loading of inline code comments.
+- Cleaned code for full PEP8 compatibility and added comments.
+- Added simple tests.
+
+
+### Fixed
+- Fixed a bug where unexpected behaviour would occur when a pound symbol was used inside a key value.
