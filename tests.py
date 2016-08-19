@@ -76,8 +76,8 @@ class TestPythonNginx(unittest.TestCase):
 
     def test_filtering(self):
         data = nginx.loads(TESTBLOCK)
-        self.assertEqual(len(data.server.filter('mykey')), 1)
-        self.assertEqual(data.server.filter('nothere'), [])
+        self.assertEqual(len(data.server.filter('Key', 'mykey')), 1)
+        self.assertEqual(data.server.filter('Key', 'nothere'), [])
 
 
 if __name__ == '__main__':
