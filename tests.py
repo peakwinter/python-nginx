@@ -49,25 +49,25 @@ class TestPythonNginx(unittest.TestCase):
 
     def test_comment_parse(self):
         data = nginx.loads(TESTBLOCK)
-        self.assertEquals(len(data.server.comments), 4)
-        self.assertEquals(data.server.comments[2].comment, 'And also this one')
+        self.assertEqual(len(data.server.comments), 4)
+        self.assertEqual(data.server.comments[2].comment, 'And also this one')
 
     def test_key_parse(self):
         data = nginx.loads(TESTBLOCK)
-        self.assertEquals(len(data.server.keys), 5)
+        self.assertEqual(len(data.server.keys), 5)
         firstKey = data.server.keys[0]
         thirdKey = data.server.keys[3]
-        self.assertEquals(firstKey.name, 'listen')
-        self.assertEquals(firstKey.value, '80')
-        self.assertEquals(thirdKey.name, 'mykey')
-        self.assertEquals(thirdKey.value, '"myvalue; #notme myothervalue"')
+        self.assertEqual(firstKey.name, 'listen')
+        self.assertEqual(firstKey.value, '80')
+        self.assertEqual(thirdKey.name, 'mykey')
+        self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
 
     def test_location_parse(self):
         data = nginx.loads(TESTBLOCK)
-        self.assertEquals(len(data.server.locations), 1)
+        self.assertEqual(len(data.server.locations), 1)
         firstLoc = data.server.locations[0]
-        self.assertEquals(firstLoc.value, '~ \.php(?:$|/)')
-        self.assertEquals(len(firstLoc.keys), 1)
+        self.assertEqual(firstLoc.value, '~ \.php(?:$|/)')
+        self.assertEqual(len(firstLoc.keys), 1)
 
     def test_reflection(self):
         inp_data = nginx.loads(TESTBLOCK)
