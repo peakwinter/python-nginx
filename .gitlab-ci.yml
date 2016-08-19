@@ -1,0 +1,7 @@
+image: python:3.5
+
+
+test:
+  script:
+    - python tests.py
+  when: on_success
