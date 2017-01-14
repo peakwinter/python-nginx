@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='python-nginx',
-    version='1.0',
+    version='1.1',
     description='Create and modify nginx serverblock configs in Python',
     author='Jacob Cook',
     author_email='jacob@peakwinter.net',

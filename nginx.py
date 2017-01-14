@@ -439,10 +439,11 @@ def loads(data, conf=True):
             to_eval = line
             if re.match(cmt_regex, line):
                 to_eval = re.match(cmt_regex, line).group(1)
-            kname, kval = re.match(key_regex, to_eval).group(1, 2)
-            if "#" not in kname:
-                k = Key(kname, kval)
-                lopen[0].add(k)
+            if re.match(key_regex, to_eval):
+                kname, kval = re.match(key_regex, to_eval).group(1, 2)
+                if "#" not in kname:
+                    k = Key(kname, kval)
+                    lopen[0].add(k)
         if re.match(r'.*}', line):
             closenum = len(re.findall('}', line))
             while closenum > 0:
