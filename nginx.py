@@ -414,6 +414,7 @@ def loads(data, conf=True):
     f = Conf() if conf else []
     lopen = []
     for line in data.split('\n'):
+        line_outside_quotes = re.sub(r'"([^"]+)"|\'([^\']+)\'|\\S+', '', line)
         if re.match(r'\s*server\s*{', line):
             s = Server()
             lopen.insert(0, s)
@@ -444,8 +445,8 @@ def loads(data, conf=True):
                 if "#" not in kname:
                     k = Key(kname, kval)
                     lopen[0].add(k)
-        if re.match(r'.*}', line):
-            closenum = len(re.findall('}', line))
+        if re.match(r'.*}', line_outside_quotes):
+            closenum = len(re.findall('}', line_outside_quotes))
             while closenum > 0:
                 if isinstance(lopen[0], Server):
                     f.add(lopen[0]) if conf else f.append(lopen[0])
