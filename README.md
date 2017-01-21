@@ -1,5 +1,7 @@
 ## python-nginx
 
+![](https://travis-ci.org/peakwinter/python-nginx.svg?branch=master)
+
 A module for easily creating and modifying nginx serverblock configurations in Python (including comments!).
 
 ### Examples
