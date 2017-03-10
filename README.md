@@ -4,6 +4,10 @@
 
 A module for easily creating and modifying nginx serverblock configurations in Python (including comments!).
 
+### Install
+
+    pip install python-nginx
+
 ### Examples
 
 Create an nginx serverblock and save it to file:
