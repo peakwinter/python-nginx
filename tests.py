@@ -29,6 +29,30 @@ server {
 }
 """
 
+SECODTESTBLOCK = """
+server 
+{
+listen 80;  # This comment should be present;
+    # And this one
+    server_name localhost 127.0.0.1;
+root /srv/http;  # And also this one
+    mykey "myvalue; #notme myothervalue";
+    # This one too
+    index index.php;
+
+    location ~ \.php(?:$|/) {
+        fastcgi_pass php;
+    }
+    
+    # location from the issue #10
+     location / {
+return 301 $scheme://$host:$server_port${request_uri}bitbucket/;
+ }
+}
+"""
+
+
+
 MESSYBLOCK = """
 # This is an example of a messy config
 upstream php { server unix:/tmp/php-cgi.socket; }
@@ -54,6 +78,16 @@ class TestPythonNginx(unittest.TestCase):
 
     def test_key_parse(self):
         data = nginx.loads(TESTBLOCK)
+        self.assertEqual(len(data.server.keys), 5)
+        firstKey = data.server.keys[0]
+        thirdKey = data.server.keys[3]
+        self.assertEqual(firstKey.name, 'listen')
+        self.assertEqual(firstKey.value, '80')
+        self.assertEqual(thirdKey.name, 'mykey')
+        self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
+
+    def test_key_parse_testblock2(self):
+        data = nginx.loads(SECODTESTBLOCK)
         self.assertEqual(len(data.server.keys), 5)
         firstKey = data.server.keys[0]
         thirdKey = data.server.keys[3]

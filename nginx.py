@@ -415,7 +415,7 @@ def loads(data, conf=True):
     lopen = []
     for line in data.split('\n'):
         line_outside_quotes = re.sub(r'"([^"]+)"|\'([^\']+)\'|\\S+', '', line)
-        if re.match(r'\s*server\s*{', line):
+        if re.match(r'\s*server\s*({.*)?$', line):
             s = Server()
             lopen.insert(0, s)
         if re.match(r'\s*location.*{', line):
@@ -445,7 +445,7 @@ def loads(data, conf=True):
                 if "#" not in kname:
                     k = Key(kname, kval)
                     lopen[0].add(k)
-        if re.match(r'.*}', line_outside_quotes):
+        if re.match(r'(.*}$)|(\s*{$)', line_outside_quotes):
             closenum = len(re.findall('}', line_outside_quotes))
             while closenum > 0:
                 if isinstance(lopen[0], Server):
