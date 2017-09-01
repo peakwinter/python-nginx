@@ -445,7 +445,7 @@ def loads(data, conf=True):
                 if "#" not in kname:
                     k = Key(kname, kval)
                     lopen[0].add(k)
-        if re.match(r'(.*}$)|(\s*{$)', line_outside_quotes):
+        if re.match(r'(^(?!#)([^#]*[}]{1})$)|(\s*{$)', line_outside_quotes):
             closenum = len(re.findall('}', line_outside_quotes))
             while closenum > 0:
                 if isinstance(lopen[0], Server):
