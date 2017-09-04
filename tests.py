@@ -29,7 +29,11 @@ server {
 }
 """
 
-SECODTESTBLOCK = """
+SECONDTESTBLOCK = """
+upstream php 
+{
+    server unix:/tmp/php-fcgi.socket;
+}
 server 
 {
 listen 80;  # This comment should be present;
@@ -39,7 +43,10 @@ root /srv/http;  # And also this one
     mykey "myvalue; #notme myothervalue";
     # This one too
     index index.php;
-
+if (!-e $request_filename)
+{
+    rewrite ^(.+)$ /index.php?q=$1 last;
+}
     location ~ \.php(?:$|/) {
         fastcgi_pass php;
     }
@@ -87,7 +94,7 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
 
     def test_key_parse_testblock2(self):
-        data = nginx.loads(SECODTESTBLOCK)
+        data = nginx.loads(SECONDTESTBLOCK)
         self.assertEqual(len(data.server.keys), 5)
         firstKey = data.server.keys[0]
         thirdKey = data.server.keys[3]
@@ -106,6 +113,13 @@ class TestPythonNginx(unittest.TestCase):
     def test_reflection(self):
         inp_data = nginx.loads(TESTBLOCK)
         out_data = '\n' + nginx.dumps(inp_data)
+        self.assertEqual(TESTBLOCK, out_data)
+
+    def test_reflection2(self):
+        inp_data = nginx.loads(SECONDTESTBLOCK)
+        out_data = '\n' + nginx.dumps(inp_data)
+        print(out_data)
+        print(SECONDTESTBLOCK)
         self.assertEqual(TESTBLOCK, out_data)
 
     def test_filtering(self):

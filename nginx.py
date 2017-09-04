@@ -422,12 +422,12 @@ def loads(data, conf=True):
             lpath = re.match(r'\s*location\s*(.*\S+)\s*{', line).group(1)
             l = Location(lpath)
             lopen.insert(0, l)
-        if re.match(r'\s*if.*{', line):
-            ifs = re.match('\s*if\s*(.*\S+)\s*{', line).group(1)
+        if re.match(r'\s*if.*({.*)?$', line):
+            ifs = re.match('\s*if\s*(.*\s*)\s*', line).group(1)
             ifs = If(ifs)
             lopen.insert(0, ifs)
-        if re.match(r'\s*upstream.*{', line):
-            ups = re.match(r'\s*upstream\s*(.*\S+)\s*{', line).group(1)
+        if re.match(r'\s*upstream.*({.*)?$', line):
+            ups = re.match(r'\s*upstream\s*(.*\S+)\s*[^{]', line).group(1)
             u = Upstream(ups)
             lopen.insert(0, u)
         if re.match(r'\s*geo\s*\$.*\s{', line):
