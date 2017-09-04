@@ -423,7 +423,7 @@ def loads(data, conf=True):
             l = Location(lpath)
             lopen.insert(0, l)
         if re.match(r'\s*if.*({.*)?$', line):
-            ifs = re.match('\s*if\s*(.*\s*)\s*', line).group(1)
+            ifs = re.match('\s*if\s*(.*\s+)\s*', line).group(1)
             ifs = If(ifs)
             lopen.insert(0, ifs)
         if re.match(r'\s*upstream.*({.*)?$', line):
