@@ -13,6 +13,7 @@ import unittest
 
 
 TESTBLOCK = """
+include conf.d/pre/*.cfg;
 upstream php {
     server unix:/tmp/php-fcgi.socket;
 }

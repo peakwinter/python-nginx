@@ -444,7 +444,10 @@ def loads(data, conf=True):
                 kname, kval = re.match(key_regex, to_eval).group(1, 2)
                 if "#" not in kname:
                     k = Key(kname, kval)
-                    lopen[0].add(k)
+                    if lopen and isinstance(lopen[0], (Container, Server)):
+                        lopen[0].add(k)
+                    else:
+                        f.add(k) if conf else f.append(k)
         if re.match(r'(^(?!#)([^#]*[}]{1}\s*)$)|(\s*{$)', line_outside_quotes):
             closenum = len(re.findall('}', line_outside_quotes))
             while closenum > 0:
@@ -454,7 +457,7 @@ def loads(data, conf=True):
                 elif isinstance(lopen[0], Container):
                     c = lopen[0]
                     lopen.pop(0)
-                    if lopen:
+                    if lopen and isinstance(lopen[0], (Container, Server)):
                         lopen[0].add(c)
                     else:
                         f.add(c) if conf else f.append(c)
@@ -463,7 +466,7 @@ def loads(data, conf=True):
             cmt_regex = r'.*#\s*(.*)(?![^\'\"]*[\'\"])'
             c = Comment(re.match(cmt_regex, line).group(1),
                         inline=not re.match(r'^\s*#.*', line))
-            if len(lopen):
+            if lopen and isinstance(lopen[0], (Container, Server)):
                 lopen[0].add(c)
             else:
                 f.add(c) if conf else f.append(c)
