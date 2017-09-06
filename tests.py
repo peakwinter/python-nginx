@@ -6,6 +6,8 @@ python-nginx
 Licensed under GPLv3, see LICENSE.md
 """
 
+# flake8: noqa
+
 import nginx
 import unittest
 
@@ -30,11 +32,11 @@ server {
 """
 
 SECONDTESTBLOCK = """
-upstream php 
+upstream php
 {
     server unix:/tmp/php-fcgi.socket;
 }
-server 
+server
 {
 listen 80;  # This comment should be present;
     # And this one
@@ -54,7 +56,7 @@ if (!-e $request_filename) {
     location ~ \.php(?:$|/) {
         fastcgi_pass php;
     }
-    
+
     # location from the issue #10
      location / {
 return 301 $scheme://$host:$server_port${request_uri}bitbucket/;
@@ -97,7 +99,7 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(thirdKey.name, 'mykey')
         self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
 
-    def test_key_parse_testblock2(self):
+    def test_key_parse_complex(self):
         data = nginx.loads(SECONDTESTBLOCK)
         self.assertEqual(len(data.server.keys), 5)
         firstKey = data.server.keys[0]
@@ -106,6 +108,10 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(firstKey.value, '80')
         self.assertEqual(thirdKey.name, 'mykey')
         self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
+        self.assertEqual(
+            data.server.locations[-1].keys[0].value,
+            "301 $scheme://$host:$server_port${request_uri}bitbucket/"
+        )
 
     def test_location_parse(self):
         data = nginx.loads(TESTBLOCK)
