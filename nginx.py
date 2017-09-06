@@ -444,10 +444,7 @@ def loads(data, conf=True):
                 kname, kval = re.match(key_regex, to_eval).group(1, 2)
                 if "#" not in kname:
                     k = Key(kname, kval)
-                    try:
-                        lopen[0].add(k)
-                    except:
-                        pass
+                    lopen[0].add(k)
         if re.match(r'(^(?!#)([^#]*[}]{1}\s*)$)|(\s*{$)', line_outside_quotes):
             closenum = len(re.findall('}', line_outside_quotes))
             while closenum > 0:
