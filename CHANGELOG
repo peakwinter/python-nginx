@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.2.0] - 2017-09-06
+### Fixed
+- Fixed several bugs involving parsing of messy files and brace locations (thanks @lelik9!)
+- Fixed a bug where an exception was raised if a key was found in the top level of the configuration.
+
+## [1.1.0] - 2017-01-14
+### Fixed
+- Fixed a bug where an exception was raised if location blocks didn't contain any normal keys.
+- Fixed a bug where an exception was raised if a closing brace was used inside a key's value.
+
 ## [1.0.0] - 2016-08-19
 ### Changed
 - Some API changes:
@@ -14,7 +24,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Added loading of inline code comments.
 - Cleaned code for full PEP8 compatibility and added comments.
 - Added simple tests.
-
 
 ### Fixed
 - Fixed a bug where unexpected behaviour would occur when a pound symbol was used inside a key value.
