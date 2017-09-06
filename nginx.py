@@ -415,19 +415,19 @@ def loads(data, conf=True):
     lopen = []
     for line in data.split('\n'):
         line_outside_quotes = re.sub(r'"([^"]+)"|\'([^\']+)\'|\\S+', '', line)
-        if re.match(r'\s*server\s*{', line):
+        if re.match(r'\s*server\s*({.*)?$', line):
             s = Server()
             lopen.insert(0, s)
         if re.match(r'\s*location.*{', line):
             lpath = re.match(r'\s*location\s*(.*\S+)\s*{', line).group(1)
             l = Location(lpath)
             lopen.insert(0, l)
-        if re.match(r'\s*if.*{', line):
-            ifs = re.match('\s*if\s*(.*\S+)\s*{', line).group(1)
+        if re.match(r'\s*if.*({.*)?$', line):
+            ifs = re.match('\s*if\s*(.*\s+)\s*', line).group(1)
             ifs = If(ifs)
             lopen.insert(0, ifs)
-        if re.match(r'\s*upstream.*{', line):
-            ups = re.match(r'\s*upstream\s*(.*\S+)\s*{', line).group(1)
+        if re.match(r'\s*upstream.*({.*)?$', line):
+            ups = re.match(r'\s*upstream\s*(.*\S+)\s*[^{]', line).group(1)
             u = Upstream(ups)
             lopen.insert(0, u)
         if re.match(r'\s*geo\s*\$.*\s{', line):
@@ -445,7 +445,7 @@ def loads(data, conf=True):
                 if "#" not in kname:
                     k = Key(kname, kval)
                     lopen[0].add(k)
-        if re.match(r'.*}', line_outside_quotes):
+        if re.match(r'(^(?!#)([^#]*[}]{1}\s*)$)|(\s*{$)', line_outside_quotes):
             closenum = len(re.findall('}', line_outside_quotes))
             while closenum > 0:
                 if isinstance(lopen[0], Server):
