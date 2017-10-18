@@ -418,8 +418,8 @@ def loads(data, conf=True):
         if re.match(r'\s*server\s*({.*)?$', line):
             s = Server()
             lopen.insert(0, s)
-        if re.match(r'\s*location.*{', line):
-            lpath = re.match(r'\s*location\s*(.*\S+)\s*{', line).group(1)
+        if re.match(r'\s*location.*', line):
+            lpath = re.match(r'\s*location\s*(.*\S+)\s*', line).group(1)
             l = Location(lpath)
             lopen.insert(0, l)
         if re.match(r'\s*if.*({.*)?$', line):
@@ -427,7 +427,7 @@ def loads(data, conf=True):
             ifs = If(ifs)
             lopen.insert(0, ifs)
         if re.match(r'\s*upstream.*({.*)?$', line):
-            ups = re.match(r'\s*upstream\s*(.*\S+)\s*[^{]', line).group(1)
+            ups = re.match(r'\s*upstream\s*(.*\S+)\s*[^{]', line).group().split()[1]
             u = Upstream(ups)
             lopen.insert(0, u)
         if re.match(r'\s*geo\s*\$.*\s{', line):
@@ -437,6 +437,9 @@ def loads(data, conf=True):
         if re.match(r'.*;', line):
             cmt_regex = r'(.*)#\s*(?![^\'\"]*[\'\"])'
             key_regex = r'.*(?:^|^\s*|{\s*)(\S+)\s(.+);'
+
+            oneword_regex = r'\s*(\S+[^\s+]\S+)\s*;\s*'
+        
             to_eval = line
             if re.match(cmt_regex, line):
                 to_eval = re.match(cmt_regex, line).group(1)
@@ -448,6 +451,17 @@ def loads(data, conf=True):
                         lopen[0].add(k)
                     else:
                         f.add(k) if conf else f.append(k)
+
+            if re.match(oneword_regex, line):
+                kname = re.match(oneword_regex, line).group(1)
+                k = Key(kname, '')
+
+                if lopen and isinstance(lopen[0], (Container, Server)):
+                    lopen[0].add(k)
+                else:
+                    f.add(k) if conf else f.append(k)
+
+                 
         if re.match(r'(^(?!#)([^#]*[}]{1}\s*)$)|(\s*{$)', line_outside_quotes):
             closenum = len(re.findall('}', line_outside_quotes))
             while closenum > 0:
