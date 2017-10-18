@@ -419,7 +419,7 @@ def loads(data, conf=True):
             s = Server()
             lopen.insert(0, s)
         if re.match(r'\s*location.*', line):
-            lpath = re.match(r'\s*location\s*(.*\S+)\s*', line).group(1)
+            lpath = re.match(r'\s*location\s*(.*\S+)\s*{', line).group(1)
             l = Location(lpath)
             lopen.insert(0, l)
         if re.match(r'\s*if.*({.*)?$', line):
