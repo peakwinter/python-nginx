@@ -185,7 +185,7 @@ class Server(object):
     def as_strings(self):
         """Return the entire Server block as nginx config strings."""
         ret = []
-        ret.append('server {\n')
+        ret.append('\nserver {\n')
         for x in self.children:
             if isinstance(x, Key):
                 ret.append(INDENT + x.as_strings)
@@ -401,6 +401,10 @@ class Key(object):
     @property
     def as_strings(self):
         """Return key as nginx config string."""
+        if self.value == '' or self.value is None:
+            return '{0};\n'.format(self.name)
+        if ';' in self.value or '#' in self.value:
+            return '{0} "{1}";\n'.format(self.name, self.value)
         return '{0} {1};\n'.format(self.name, self.value)
 
 
@@ -413,77 +417,95 @@ def loads(data, conf=True):
     """
     f = Conf() if conf else []
     lopen = []
-    for line in data.split('\n'):
-        line_outside_quotes = re.sub(r'"([^"]+)"|\'([^\']+)\'|\\S+', '', line)
-        if re.match(r'\s*server\s*({.*)?$', line):
+    index = 0
+
+    while True:
+        m = re.compile(r'^\s*server\s*{', re.S).search(data[index:])
+        if m:
             s = Server()
             lopen.insert(0, s)
-        if re.match(r'\s*location.*', line):
-            lpath = re.match(r'\s*location\s*(.*\S+)\s*{', line).group(1)
-            l = Location(lpath)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*location\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        if m:
+            l = Location(m.group(1))
             lopen.insert(0, l)
-        if re.match(r'\s*if.*({.*)?$', line):
-            ifs = re.match('\s*if\s*(.*\s+)\s*', line).group(1)
-            ifs = If(ifs)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*if\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        if m:
+            ifs = If(m.group(1))
             lopen.insert(0, ifs)
-        if re.match(r'\s*upstream.*({.*)?$', line):
-            ups = re.match(r'\s*upstream\s*(.*\S+)\s*[^{]', line).group().split()[1]
-            u = Upstream(ups)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*upstream\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        if m:
+            u = Upstream(m.group(1))
             lopen.insert(0, u)
-        if re.match(r'\s*geo\s*\$.*\s{', line):
-            geo = re.match('\s*geo\s+(\$.*)\s{', line).group(1)
-            s = Geo(geo)
-            lopen.insert(0, s)
-        if re.match(r'.*;', line):
-            cmt_regex = r'(.*)#\s*(?![^\'\"]*[\'\"])'
-            key_regex = r'.*(?:^|^\s*|{\s*)(\S+)\s(.+);'
+            index += m.end()
+            continue
 
-            oneword_regex = r'\s*(\S+[^\s+]\S+)\s*;\s*'
-        
-            to_eval = line
-            if re.match(cmt_regex, line):
-                to_eval = re.match(cmt_regex, line).group(1)
-            if re.match(key_regex, to_eval):
-                kname, kval = re.match(key_regex, to_eval).group(1, 2)
-                if "#" not in kname:
-                    k = Key(kname, kval)
-                    if lopen and isinstance(lopen[0], (Container, Server)):
-                        lopen[0].add(k)
-                    else:
-                        f.add(k) if conf else f.append(k)
+        m = re.compile(r'^\s*geo\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        if m:
+            g = Geo(m.group(1))
+            lopen.insert(0, g)
+            index += m.end()
+            continue
 
-            if re.match(oneword_regex, line):
-                kname = re.match(oneword_regex, line).group(1)
-                k = Key(kname, '')
-
-                if lopen and isinstance(lopen[0], (Container, Server)):
-                    lopen[0].add(k)
-                else:
-                    f.add(k) if conf else f.append(k)
-
-                 
-        if re.match(r'(^(?!#)([^#]*[}]{1}\s*)$)|(\s*{$)', line_outside_quotes):
-            closenum = len(re.findall('}', line_outside_quotes))
-            while closenum > 0:
-                if isinstance(lopen[0], Server):
-                    f.add(lopen[0]) if conf else f.append(lopen[0])
-                    lopen.pop(0)
-                elif isinstance(lopen[0], Container):
-                    c = lopen[0]
-                    lopen.pop(0)
-                    if lopen and isinstance(lopen[0], (Container, Server)):
-                        lopen[0].add(c)
-                    else:
-                        f.add(c) if conf else f.append(c)
-                closenum = closenum - 1
-        if re.match(r'.*#\s*(?![^\'\"]*[\'\"])', line):
-            cmt_regex = r'.*#\s*(.*)(?![^\'\"]*[\'\"])'
-            c = Comment(re.match(cmt_regex, line).group(1),
-                        inline=not re.match(r'^\s*#.*', line))
+        m = re.compile(r'^(\s*)#\s*(.*?)\n', re.S).search(data[index:])
+        if m:
+            c = Comment(m.group(2), inline='\n' not in m.group(1))
             if lopen and isinstance(lopen[0], (Container, Server)):
                 lopen[0].add(c)
             else:
                 f.add(c) if conf else f.append(c)
+            index += m.end() - 1
+            continue
+
+        m = re.compile(r'^\s*}', re.S).search(data[index:])
+        if m:
+            if isinstance(lopen[0], Server):
+                f.add(lopen[0]) if conf else f.append(lopen[0])
+                lopen.pop(0)
+            elif isinstance(lopen[0], Container):
+                c = lopen[0]
+                lopen.pop(0)
+                if lopen and isinstance(lopen[0], (Container, Server)):
+                    lopen[0].add(c)
+                else:
+                    f.add(c) if conf else f.append(c)
+            index += m.end()
+            continue
+
+        key_with_quoted = r'^\s*(\S*?)\s*"([^"]+)";?|\'([^\']+)\';?|\\S+;?'
+        key_wo_quoted = r'^\s*([a-zA-Z0-9-_]+?)\s+(.+?);'
+        m1 = re.compile(key_with_quoted, re.S).search(data[index:])
+        m2 = re.compile(key_wo_quoted, re.S).search(data[index:])
+        m = m1 or m2
+        if m:
+            k = Key(m.group(1), m.group(2))
+            if lopen and isinstance(lopen[0], (Container, Server)):
+                lopen[0].add(k)
+            else:
+                f.add(k) if conf else f.append(k)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*(\S+);', re.S).search(data[index:])
+        if m:
+            k = Key(m.group(1), '')
+            if lopen and isinstance(lopen[0], (Container, Server)):
+                lopen[0].add(k)
+            else:
+                f.add(k) if conf else f.append(k)
+            index += m.end()
+            continue
+
+        break
+
     return f
 
 
