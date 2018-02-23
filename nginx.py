@@ -345,6 +345,15 @@ class Geo(Container):
         self.name = 'geo'
 
 
+class Map(Container):
+    """Container for map configuration."""
+
+    def __init__(self, value, *args):
+        """Initialize."""
+        super(Map, self).__init__(value, *args)
+        self.name = 'map'
+
+
 class Key(object):
     """Represents a simple key/value object found in an nginx config."""
 
@@ -434,6 +443,13 @@ def loads(data, conf=True):
         m = re.compile(r'^\s*geo\s*(.*?\S+)\s*{', re.S).search(data[index:])
         if m:
             g = Geo(m.group(1))
+            lopen.insert(0, g)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*map\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        if m:
+            g = Map(m.group(1))
             lopen.insert(0, g)
             index += m.end()
             continue
