@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+### Fixed
+- Fixed bug with map crashing loading of nginx.conf.
+
 ## [1.2.0] - 2017-09-06
 ### Fixed
 - Fixed several bugs involving parsing of messy files and brace locations (thanks @lelik9!)

@@ -11,6 +11,13 @@ import re
 INDENT = '    '
 
 
+def bump_child_depth(obj, depth):
+    children = getattr(obj, 'children', [])
+    for child in children:
+        child._depth = depth + 1
+        bump_child_depth(child, child._depth)
+
+
 class Conf(object):
     """
     Represents an nginx configuration.
@@ -97,41 +104,48 @@ class Conf(object):
             else:
                 for y in x.as_strings:
                     ret.append(y)
+        ret[-1] = re.sub('}\n+$', '}\n', ret[-1])
         return ret
 
 
-class Server(object):
+class Container(object):
     """
-    Represents an nginx server block.
+    Represents a type of child block found in an nginx config.
 
-    A `Server` contains a list of key-values used to set up the web server
-    for a particular site. Can also contain other objects like Location blocks.
+    Intended to be subclassed by various types of child blocks, like
+    Locations or Geo blocks.
     """
 
-    def __init__(self, *args):
+    def __init__(self, value, *args):
         """
         Initialize object.
 
-        :param *args: Any objects to include in this Server block.
+        :param str value: Value to be used in name (e.g. regex for Location)
+        :param *args: Any objects to include in this Conf.
         """
+        self.name = ''
+        self.value = value
+        self._depth = 0
         self.children = list(args)
+        bump_child_depth(self, self._depth)
 
     def add(self, *args):
         """
-        Add object(s) to the Server block.
+        Add object(s) to the Container.
 
-        :param *args: Any objects to add to the Server block.
-        :returns: full list of Server block's child objects
+        :param *args: Any objects to add to the Container.
+        :returns: full list of Container's child objects
         """
         self.children.extend(args)
+        bump_child_depth(self, self._depth)
         return self.children
 
     def remove(self, *args):
         """
-        Remove object(s) from the Server block.
+        Remove object(s) from the Container.
 
-        :param *args: Any objects to remove from the Server block.
-        :returns: full list of Server block's child objects
+        :param *args: Any objects to remove from the Container.
+        :returns: full list of Container's child objects
         """
         for x in args:
             self.children.remove(x)
@@ -174,88 +188,6 @@ class Server(object):
     @property
     def as_list(self):
         """Return all child objects in nested lists of strings."""
-        return ['server', '', [x.as_list for x in self.children]]
-
-    @property
-    def as_dict(self):
-        """Return all child objects in nested dict."""
-        return {'server': [x.as_dict for x in self.children]}
-
-    @property
-    def as_strings(self):
-        """Return the entire Server block as nginx config strings."""
-        ret = []
-        ret.append('server {\n')
-        for x in self.children:
-            if isinstance(x, Key):
-                ret.append(INDENT + x.as_strings)
-            elif isinstance(x, Comment):
-                if x.inline and len(ret) >= 1:
-                    ret[-1] = ret[-1].rstrip('\n') + '  ' + x.as_strings
-                else:
-                    ret.append(INDENT + x.as_strings)
-            elif isinstance(x, Container):
-                y = x.as_strings
-                ret.append('\n' + INDENT + y[0])
-                for z in y[1:]:
-                    ret.append(INDENT+z)
-        ret.append('}\n')
-        return ret
-
-
-class Container(object):
-    """
-    Represents a type of child block found in an nginx config.
-
-    Intended to be subclassed by various types of child blocks, like
-    Locations or Geo blocks.
-    """
-
-    def __init__(self, value, *args):
-        """
-        Initialize object.
-
-        :param str value: Value to be used in name (e.g. regex for Location)
-        :param *args: Any objects to include in this Conf.
-        """
-        self.name = ''
-        self.value = value
-        self.children = list(args)
-
-    def add(self, *args):
-        """
-        Add object(s) to the Container.
-
-        :param *args: Any objects to add to the Container.
-        :returns: full list of Container's child objects
-        """
-        self.children.extend(args)
-        return self.children
-
-    def remove(self, *args):
-        """
-        Remove object(s) from the Container.
-
-        :param *args: Any objects to remove from the Container.
-        :returns: full list of Container's child objects
-        """
-        for x in args:
-            self.children.remove(x)
-        return self.children
-
-    @property
-    def comments(self):
-        """Return a list of child Comment objects."""
-        return [x for x in self.children if isinstance(x, Comment)]
-
-    @property
-    def keys(self):
-        """Return a list of child Key objects."""
-        return [x for x in self.children if isinstance(x, Key)]
-
-    @property
-    def as_list(self):
-        """Return all child objects in nested lists of strings."""
         return [self.name, self.value, [x.as_list for x in self.children]]
 
     @property
@@ -268,7 +200,11 @@ class Container(object):
     def as_strings(self):
         """Return the entire Container as nginx config strings."""
         ret = []
-        ret.append('{0} {1} {{\n'.format(self.name, self.value))
+        container_title = (INDENT * self._depth)
+        container_title += '{0}{1} {{\n'.format(
+            self.name, (' {0}'.format(self.value) if self.value else '')
+        )
+        ret.append(container_title)
         for x in self.children:
             if isinstance(x, Key):
                 ret.append(INDENT + x.as_strings)
@@ -279,13 +215,14 @@ class Container(object):
                     ret.append(INDENT + x.as_strings)
             elif isinstance(x, Container):
                 y = x.as_strings
-                ret.append('\n' + INDENT + INDENT + y[0])
+                ret.append('\n' + y[0])
                 for z in y[1:]:
                     ret.append(INDENT + z)
             else:
                 y = x.as_strings
                 ret.append(INDENT + y)
-        ret.append('}\n')
+        ret[-1] = re.sub('}\n+$', '}\n', ret[-1])
+        ret.append('}\n\n')
         return ret
 
 
@@ -318,6 +255,29 @@ class Comment(object):
         return '# {0}\n'.format(self.comment)
 
 
+class Http(Container):
+    """Container for HTTP sections in the main NGINX conf file."""
+
+    def __init__(self, *args):
+        """Initialize."""
+        super(Http, self).__init__('', *args)
+        self.name = 'http'
+
+
+class Server(Container):
+    """Container for server block configurations."""
+
+    def __init__(self, *args):
+        """Initialize."""
+        super(Server, self).__init__('', *args)
+        self.name = 'server'
+
+    @property
+    def as_dict(self):
+        """Return all child objects in nested dict."""
+        return {'server': [x.as_dict for x in self.children]}
+
+
 class Location(Container):
     """Container for Location-based options."""
 
@@ -325,6 +285,15 @@ class Location(Container):
         """Initialize."""
         super(Location, self).__init__(value, *args)
         self.name = 'location'
+
+
+class Events(Container):
+    """Container for Event-based options."""
+
+    def __init__(self, *args):
+        """Initialize."""
+        super(Events, self).__init__('', *args)
+        self.name = 'events'
 
 
 class LimitExcept(Container):
@@ -376,6 +345,15 @@ class Geo(Container):
         self.name = 'geo'
 
 
+class Map(Container):
+    """Container for map configuration."""
+
+    def __init__(self, value, *args):
+        """Initialize."""
+        super(Map, self).__init__(value, *args)
+        self.name = 'map'
+
+
 class Key(object):
     """Represents a simple key/value object found in an nginx config."""
 
@@ -401,6 +379,10 @@ class Key(object):
     @property
     def as_strings(self):
         """Return key as nginx config string."""
+        if self.value == '' or self.value is None:
+            return '{0};\n'.format(self.name)
+        if ';' in self.value or '#' in self.value:
+            return '{0} "{1}";\n'.format(self.name, self.value)
         return '{0} {1};\n'.format(self.name, self.value)
 
 
@@ -413,77 +395,119 @@ def loads(data, conf=True):
     """
     f = Conf() if conf else []
     lopen = []
-    for line in data.split('\n'):
-        line_outside_quotes = re.sub(r'"([^"]+)"|\'([^\']+)\'|\\S+', '', line)
-        if re.match(r'\s*server\s*({.*)?$', line):
+    index = 0
+
+    while True:
+        m = re.compile(r'^\s*events\s*{', re.S).search(data[index:])
+        if m:
+            e = Events()
+            lopen.insert(0, e)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*http\s*{', re.S).search(data[index:])
+        if m:
+            h = Http()
+            lopen.insert(0, h)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*server\s*{', re.S).search(data[index:])
+        if m:
             s = Server()
             lopen.insert(0, s)
-        if re.match(r'\s*location.*', line):
-            lpath = re.match(r'\s*location\s*(.*\S+)\s*{', line).group(1)
-            l = Location(lpath)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*location\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        if m:
+            l = Location(m.group(1))
             lopen.insert(0, l)
-        if re.match(r'\s*if.*({.*)?$', line):
-            ifs = re.match('\s*if\s*(.*\s+)\s*', line).group(1)
-            ifs = If(ifs)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*if\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        if m:
+            ifs = If(m.group(1))
             lopen.insert(0, ifs)
-        if re.match(r'\s*upstream.*({.*)?$', line):
-            ups = re.match(r'\s*upstream\s*(.*\S+)\s*[^{]', line).group().split()[1]
-            u = Upstream(ups)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*upstream\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        if m:
+            u = Upstream(m.group(1))
             lopen.insert(0, u)
-        if re.match(r'\s*geo\s*\$.*\s{', line):
-            geo = re.match('\s*geo\s+(\$.*)\s{', line).group(1)
-            s = Geo(geo)
-            lopen.insert(0, s)
-        if re.match(r'.*;', line):
-            cmt_regex = r'(.*)#\s*(?![^\'\"]*[\'\"])'
-            key_regex = r'.*(?:^|^\s*|{\s*)(\S+)\s(.+);'
+            index += m.end()
+            continue
 
-            oneword_regex = r'\s*(\S+[^\s+]\S+)\s*;\s*'
-        
-            to_eval = line
-            if re.match(cmt_regex, line):
-                to_eval = re.match(cmt_regex, line).group(1)
-            if re.match(key_regex, to_eval):
-                kname, kval = re.match(key_regex, to_eval).group(1, 2)
-                if "#" not in kname:
-                    k = Key(kname, kval)
-                    if lopen and isinstance(lopen[0], (Container, Server)):
-                        lopen[0].add(k)
-                    else:
-                        f.add(k) if conf else f.append(k)
+        m = re.compile(r'^\s*geo\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        if m:
+            g = Geo(m.group(1))
+            lopen.insert(0, g)
+            index += m.end()
+            continue
 
-            if re.match(oneword_regex, line):
-                kname = re.match(oneword_regex, line).group(1)
-                k = Key(kname, '')
+        m = re.compile(r'^\s*map\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        if m:
+            g = Map(m.group(1))
+            lopen.insert(0, g)
+            index += m.end()
+            continue
 
-                if lopen and isinstance(lopen[0], (Container, Server)):
-                    lopen[0].add(k)
-                else:
-                    f.add(k) if conf else f.append(k)
-
-                 
-        if re.match(r'(^(?!#)([^#]*[}]{1}\s*)$)|(\s*{$)', line_outside_quotes):
-            closenum = len(re.findall('}', line_outside_quotes))
-            while closenum > 0:
-                if isinstance(lopen[0], Server):
-                    f.add(lopen[0]) if conf else f.append(lopen[0])
-                    lopen.pop(0)
-                elif isinstance(lopen[0], Container):
-                    c = lopen[0]
-                    lopen.pop(0)
-                    if lopen and isinstance(lopen[0], (Container, Server)):
-                        lopen[0].add(c)
-                    else:
-                        f.add(c) if conf else f.append(c)
-                closenum = closenum - 1
-        if re.match(r'.*#\s*(?![^\'\"]*[\'\"])', line):
-            cmt_regex = r'.*#\s*(.*)(?![^\'\"]*[\'\"])'
-            c = Comment(re.match(cmt_regex, line).group(1),
-                        inline=not re.match(r'^\s*#.*', line))
-            if lopen and isinstance(lopen[0], (Container, Server)):
+        m = re.compile(r'^(\s*)#\s*(.*?)\n', re.S).search(data[index:])
+        if m:
+            c = Comment(m.group(2), inline='\n' not in m.group(1))
+            if lopen and isinstance(lopen[0], Container):
                 lopen[0].add(c)
             else:
                 f.add(c) if conf else f.append(c)
+            index += m.end() - 1
+            continue
+
+        m = re.compile(r'^\s*}', re.S).search(data[index:])
+        if m:
+            if isinstance(lopen[0], Container):
+                c = lopen[0]
+                lopen.pop(0)
+                if lopen and isinstance(lopen[0], Container):
+                    lopen[0].add(c)
+                else:
+                    f.add(c) if conf else f.append(c)
+            index += m.end()
+            continue
+
+        key_with_quoted = r'^\s*(\S*?)\s*"([^"]+)";?|\'([^\']+)\';?|\\S+;?'
+        key_wo_quoted = r'^\s*([a-zA-Z0-9-_]+?)\s+(.+?);'
+        m1 = re.compile(key_with_quoted, re.S).search(data[index:])
+        m2 = re.compile(key_wo_quoted, re.S).search(data[index:])
+        if m1 and m2:
+            if m1.start() <= m2.start():
+                m = m1
+            else:
+                m = m2
+        else:
+            m = m1 or m2
+        if m:
+            k = Key(m.group(1), m.group(2))
+            if lopen and isinstance(lopen[0], (Container, Server)):
+                lopen[0].add(k)
+            else:
+                f.add(k) if conf else f.append(k)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*(\S+);', re.S).search(data[index:])
+        if m:
+            k = Key(m.group(1), '')
+            if lopen and isinstance(lopen[0], (Container, Server)):
+                lopen[0].add(k)
+            else:
+                f.add(k) if conf else f.append(k)
+            index += m.end()
+            continue
+
+        break
+
     return f
 
 
