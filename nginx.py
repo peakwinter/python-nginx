@@ -382,7 +382,7 @@ class Key(object):
         if self.value == '' or self.value is None:
             return '{0};\n'.format(self.name)
         if ';' in self.value or '#' in self.value:
-            return '{0} "{1}";\n'.format(self.name, self.value)
+            return '{0} {1};\n'.format(self.name, self.value)
         return '{0} {1};\n'.format(self.name, self.value)
 
 
@@ -419,7 +419,8 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*location\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        m = re.compile(
+            r'^\s*location\s*(.*?\S+)\s*{', re.S).search(data[index:])
         if m:
             l = Location(m.group(1))
             lopen.insert(0, l)
@@ -433,7 +434,8 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*upstream\s*(.*?\S+)\s*{', re.S).search(data[index:])
+        m = re.compile(
+            r'^\s*upstream\s*(.*?\S+)\s*{', re.S).search(data[index:])
         if m:
             u = Upstream(m.group(1))
             lopen.insert(0, u)
@@ -476,7 +478,7 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        key_with_quoted = r'^\s*(\S*?)\s*"([^"]+)";?|\'([^\']+)\';?|\\S+;?'
+        key_with_quoted = r'^\s*(\S*?)\s*(\"[^"]+\");?|(\'[^\']+\');?|\\S+;?'
         key_wo_quoted = r'^\s*([a-zA-Z0-9-_]+?)\s+(.+?);'
         m1 = re.compile(key_with_quoted, re.S).search(data[index:])
         m2 = re.compile(key_wo_quoted, re.S).search(data[index:])

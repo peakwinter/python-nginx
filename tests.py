@@ -66,7 +66,7 @@ return 301 $scheme://$host:$server_port${request_uri}bitbucket/;
 }
 """
 
-TESTBLOCK_CASE_3="""
+TESTBLOCK_CASE_3 = """
 upstream test0 {
     ip_hash;
     server 127.0.0.1:8080;
@@ -100,6 +100,27 @@ server { server_name localhost; #this is the server server_name
 location /{ test_key test_value; }}
 """
 
+TESTBLOCK_CASE_5 = """
+upstream test0 {
+    server 1.1.1.1:8080;
+    send "some request";
+}
+
+upstream test1 {
+    server 1.1.1.1:8080;
+    send 'some request';
+}
+
+server {
+    server_name "www.example.com";
+
+    location / {
+        root html;
+        proxy_ignore_headers "Set-Cookie" "Cache-Control" "Expires";
+    }
+}
+"""
+
 
 class TestPythonNginx(unittest.TestCase):
     def test_basic_load(self):
@@ -124,7 +145,7 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(firstKey.name, 'listen')
         self.assertEqual(firstKey.value, '80')
         self.assertEqual(thirdKey.name, 'mykey')
-        self.assertEqual(thirdKey.value, 'myvalue; #notme myothervalue')
+        self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
 
     def test_key_parse_complex(self):
         data = nginx.loads(TESTBLOCK_CASE_2)
@@ -134,7 +155,8 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(firstKey.name, 'listen')
         self.assertEqual(firstKey.value, '80')
         self.assertEqual(thirdKey.name, 'mykey')
-        self.assertEqual(thirdKey.value, 'myvalue; #notme myothervalue')
+
+        self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
         self.assertEqual(
             data.server.locations[-1].keys[0].value,
             "301 $scheme://$host:$server_port${request_uri}bitbucket/"
@@ -166,6 +188,12 @@ class TestPythonNginx(unittest.TestCase):
         data = nginx.loads(TESTBLOCK_CASE_1)
         self.assertEqual(len(data.server.filter('Key', 'mykey')), 1)
         self.assertEqual(data.server.filter('Key', 'nothere'), [])
+
+    def test_quoted_key_value(self):
+        data = nginx.loads(TESTBLOCK_CASE_5)
+        out_data = '\n' + nginx.dumps(data)
+        print out_data
+        self.assertEqual(out_data, TESTBLOCK_CASE_5)
 
 
 if __name__ == '__main__':
