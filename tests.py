@@ -116,7 +116,6 @@ server {
 
     location / {
         root html;
-        proxy_ignore_headers "Set-Cookie" "Cache-Control" "Expires";
     }
 }
 """
@@ -192,7 +191,6 @@ class TestPythonNginx(unittest.TestCase):
     def test_quoted_key_value(self):
         data = nginx.loads(TESTBLOCK_CASE_5)
         out_data = '\n' + nginx.dumps(data)
-        print out_data
         self.assertEqual(out_data, TESTBLOCK_CASE_5)
 
 
