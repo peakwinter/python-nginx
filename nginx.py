@@ -104,7 +104,8 @@ class Conf(object):
             else:
                 for y in x.as_strings:
                     ret.append(y)
-        ret[-1] = re.sub('}\n+$', '}\n', ret[-1])
+        if ret:
+            ret[-1] = re.sub('}\n+$', '}\n', ret[-1])
         return ret
 
 
