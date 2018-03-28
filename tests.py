@@ -124,7 +124,7 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(firstKey.name, 'listen')
         self.assertEqual(firstKey.value, '80')
         self.assertEqual(thirdKey.name, 'mykey')
-        self.assertEqual(thirdKey.value, 'myvalue; #notme myothervalue')
+        self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
 
     def test_key_parse_complex(self):
         data = nginx.loads(TESTBLOCK_CASE_2)
@@ -134,7 +134,7 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(firstKey.name, 'listen')
         self.assertEqual(firstKey.value, '80')
         self.assertEqual(thirdKey.name, 'mykey')
-        self.assertEqual(thirdKey.value, 'myvalue; #notme myothervalue')
+        self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
         self.assertEqual(
             data.server.locations[-1].keys[0].value,
             "301 $scheme://$host:$server_port${request_uri}bitbucket/"
