@@ -45,6 +45,7 @@ listen 80;  # This comment should be present;
     server_name localhost 127.0.0.1;
 root /srv/http;  # And also this one
     mykey "myvalue; #notme myothervalue";
+     "quoted_key" "quoted_value";
     # This one too
     index index.php;
 if (!-e $request_filename)
@@ -128,9 +129,10 @@ class TestPythonNginx(unittest.TestCase):
 
     def test_key_parse_complex(self):
         data = nginx.loads(TESTBLOCK_CASE_2)
-        self.assertEqual(len(data.server.keys), 5)
+        self.assertEqual(len(data.server.keys), 6)
         firstKey = data.server.keys[0]
         thirdKey = data.server.keys[3]
+        fourthKey = data.server.keys[4]
         self.assertEqual(firstKey.name, 'listen')
         self.assertEqual(firstKey.value, '80')
         self.assertEqual(thirdKey.name, 'mykey')
@@ -139,6 +141,8 @@ class TestPythonNginx(unittest.TestCase):
             data.server.locations[-1].keys[0].value,
             "301 $scheme://$host:$server_port${request_uri}bitbucket/"
         )
+        self.assertEqual(fourthKey.name, '"quoted_key"')
+        self.assertEqual(fourthKey.value, '"quoted_value"')
 
     def test_location_parse(self):
         data = nginx.loads(TESTBLOCK_CASE_1)
