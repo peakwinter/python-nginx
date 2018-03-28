@@ -382,7 +382,7 @@ class Key(object):
         """Return key as nginx config string."""
         if self.value == '' or self.value is None:
             return '{0};\n'.format(self.name)
-        if ';' in self.value or '#' in self.value:
+        if '"' not in self.value and (';' in self.value or '#' in self.value and '"' not in self.value):
             return '{0} "{1}";\n'.format(self.name, self.value)
         return '{0} {1};\n'.format(self.name, self.value)
 
@@ -477,11 +477,13 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        string_combos = r'[^;]+|"([^"]+)"|\'([^\']+)\''
-        key = r'^\s*({})\s+({})\s*([^;]*?);'.format(string_combos, string_combos)
+        s1 = r'("[^"]+"|\'[^\']+\'|[^\s;]+)'
+        s2 = r'("[^"]*"|\'[^\']*\'|[^\s;]*)'
+        s3 = r'(\s*[^;]*?)'
+        key = r'^\s*{}\s*{}{};'.format(s1, s2, s3)
         m = re.compile(key, re.S).search(data[index:])
         if m:
-            k = Key(m.group(1), m.group(4) + m.group(7))
+            k = Key(m.group(1), m.group(2) + m.group(3))
             if lopen and isinstance(lopen[0], (Container, Server)):
                 lopen[0].add(k)
             else:
