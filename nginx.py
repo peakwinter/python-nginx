@@ -477,19 +477,11 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        key_with_quoted = r'^\s*(\S*?)\s*"([^"]+)";?|\'([^\']+)\';?|\\S+;?'
-        key_wo_quoted = r'^\s*([a-zA-Z0-9-_]+?)\s+(.+?);'
-        m1 = re.compile(key_with_quoted, re.S).search(data[index:])
-        m2 = re.compile(key_wo_quoted, re.S).search(data[index:])
-        if m1 and m2:
-            if m1.start() <= m2.start():
-                m = m1
-            else:
-                m = m2
-        else:
-            m = m1 or m2
+        string_combos = r'[^;]+|"([^"]+)"|\'([^\']+)\''
+        key = r'^\s*({})\s+({})\s*([^;]*?);'.format(string_combos, string_combos)
+        m = re.compile(key, re.S).search(data[index:])
         if m:
-            k = Key(m.group(1), m.group(2))
+            k = Key(m.group(1), m.group(4) + m.group(7))
             if lopen and isinstance(lopen[0], (Container, Server)):
                 lopen[0].add(k)
             else:
