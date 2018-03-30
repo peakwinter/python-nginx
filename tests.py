@@ -138,6 +138,24 @@ upstream test1 {
 }
 """
 
+TESTBLOCK_CASE_7 = """
+upstream xx.com_backend {
+    server 10.193.2.2:9061 weight=1 max_fails=2 fail_timeout=30s;
+    server 10.193.2.1:9061 weight=1 max_fails=2 fail_timeout=30s;
+    session_sticky;
+}
+
+server {
+    listen 80;
+
+    location / {
+        set $xlocation 'test';
+        proxy_pass http://xx.com_backend;
+    }
+}
+"""
+
+
 
 class TestPythonNginx(unittest.TestCase):
     def test_basic_load(self):
@@ -212,6 +230,11 @@ class TestPythonNginx(unittest.TestCase):
         inp_data = nginx.loads(TESTBLOCK_CASE_6)
         out_data = '\n' + nginx.dumps(inp_data)
         self.assertEqual(TESTBLOCK_CASE_6, out_data)
+
+    def test_session_sticky(self):
+        inp_data = nginx.loads(TESTBLOCK_CASE_7)
+        out_data = '\n' + nginx.dumps(inp_data)
+        self.assertEqual(TESTBLOCK_CASE_7, out_data)
 
     def test_filtering(self):
         data = nginx.loads(TESTBLOCK_CASE_1)
