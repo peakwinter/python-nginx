@@ -2,9 +2,18 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.4.0] - 2018-04-01
 ### Fixed
-- Fixed bug with map crashing loading of nginx.conf.
+- Fixed bugs in parsing single key values and quoted keys/values (thanks @fulder!)
+- Fixed bugs when finding a `map` key in loading of nginx.conf. (thanks @fulder!)
+
+## [1.3.0] - 2018-02-07
+### Features
+- Full refactoring of configuration parsing.
+- Now supports the loading of root NGINX configurations, like the kind you see at /etc/nginx/nginx.conf.
+
+### Fixed
+- Fixed several bugs involving parsing of messy files, brace locations, and individual keys with no values (thanks @lelik9 and @USSX-Hares!)
 
 ## [1.2.0] - 2017-09-06
 ### Fixed
