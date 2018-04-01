@@ -382,7 +382,7 @@ class Key(object):
         """Return key as nginx config string."""
         if self.value == '' or self.value is None:
             return '{0};\n'.format(self.name)
-        if ';' in self.value or '#' in self.value:
+        if '"' not in self.value and (';' in self.value or '#' in self.value):
             return '{0} "{1}";\n'.format(self.name, self.value)
         return '{0} {1};\n'.format(self.name, self.value)
 
@@ -477,19 +477,13 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        key_with_quoted = r'^\s*(\S*?)\s*"([^"]+)";?|\'([^\']+)\';?|\\S+;?'
-        key_wo_quoted = r'^\s*([a-zA-Z0-9-_]+?)\s+(.+?);'
-        m1 = re.compile(key_with_quoted, re.S).search(data[index:])
-        m2 = re.compile(key_wo_quoted, re.S).search(data[index:])
-        if m1 and m2:
-            if m1.start() <= m2.start():
-                m = m1
-            else:
-                m = m2
-        else:
-            m = m1 or m2
+        s1 = r'("[^"]+"|\'[^\']+\'|[^\s;]+)'
+        s2 = r'("[^"]*"|\'[^\']*\'|[^\s;]*)'
+        s3 = r'(\s*[^;]*?)'
+        key = r'^\s*{}\s*{}{};'.format(s1, s2, s3)
+        m = re.compile(key, re.S).search(data[index:])
         if m:
-            k = Key(m.group(1), m.group(2))
+            k = Key(m.group(1), m.group(2) + m.group(3))
             if lopen and isinstance(lopen[0], (Container, Server)):
                 lopen[0].add(k)
             else:

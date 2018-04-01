@@ -45,6 +45,7 @@ listen 80;  # This comment should be present;
     server_name localhost 127.0.0.1;
 root /srv/http;  # And also this one
     mykey "myvalue; #notme myothervalue";
+     "quoted_key" "quoted_value";
     # This one too
     index index.php;
 if (!-e $request_filename)
@@ -101,6 +102,61 @@ location /{ test_key test_value; }}
 """
 
 
+TESTBLOCK_CASE_5 = """
+upstream test0 {
+    server 1.1.1.1:8080;
+    send "some request";
+}
+
+upstream test1 {
+    server 1.1.1.1:8080;
+    send 'some request';
+}
+
+server {
+    server_name "www.example.com";
+
+    location / {
+        root html;
+    }
+}
+"""
+
+
+TESTBLOCK_CASE_6 = """
+upstream test0 {
+    server 1.1.1.1:8080;
+    check interval=3000 rise=2 fall=3 timeout=3000 type=http;
+    check_http_send "GET /alive.html  HTTP/1.0\r\n\r\n";
+    check_http_expect_alive http_2xx http_3xx;
+}
+
+upstream test1 {
+    ip_hash;
+    server 2.2.2.2:9000;
+    check_http_send 'GET /alive.html  HTTP/1.0\r\n\r\n';
+}
+"""
+
+TESTBLOCK_CASE_7 = """
+upstream xx.com_backend {
+    server 10.193.2.2:9061 weight=1 max_fails=2 fail_timeout=30s;
+    server 10.193.2.1:9061 weight=1 max_fails=2 fail_timeout=30s;
+    session_sticky;
+}
+
+server {
+    listen 80;
+
+    location / {
+        set $xlocation 'test';
+        proxy_pass http://xx.com_backend;
+    }
+}
+"""
+
+
+
 class TestPythonNginx(unittest.TestCase):
     def test_basic_load(self):
         self.assertTrue(nginx.loads(TESTBLOCK_CASE_1) is not None)
@@ -124,21 +180,24 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(firstKey.name, 'listen')
         self.assertEqual(firstKey.value, '80')
         self.assertEqual(thirdKey.name, 'mykey')
-        self.assertEqual(thirdKey.value, 'myvalue; #notme myothervalue')
+        self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
 
     def test_key_parse_complex(self):
         data = nginx.loads(TESTBLOCK_CASE_2)
-        self.assertEqual(len(data.server.keys), 5)
+        self.assertEqual(len(data.server.keys), 6)
         firstKey = data.server.keys[0]
         thirdKey = data.server.keys[3]
+        fourthKey = data.server.keys[4]
         self.assertEqual(firstKey.name, 'listen')
         self.assertEqual(firstKey.value, '80')
         self.assertEqual(thirdKey.name, 'mykey')
-        self.assertEqual(thirdKey.value, 'myvalue; #notme myothervalue')
+        self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
         self.assertEqual(
             data.server.locations[-1].keys[0].value,
             "301 $scheme://$host:$server_port${request_uri}bitbucket/"
         )
+        self.assertEqual(fourthKey.name, '"quoted_key"')
+        self.assertEqual(fourthKey.value, '"quoted_value"')
 
     def test_location_parse(self):
         data = nginx.loads(TESTBLOCK_CASE_1)
@@ -161,6 +220,21 @@ class TestPythonNginx(unittest.TestCase):
         inp_data = nginx.loads(TESTBLOCK_CASE_1)
         out_data = '\n' + nginx.dumps(inp_data)
         self.assertEqual(TESTBLOCK_CASE_1, out_data)
+
+    def test_quoted_key_value(self):
+        data = nginx.loads(TESTBLOCK_CASE_5)
+        out_data = '\n' + nginx.dumps(data)
+        self.assertEqual(out_data, TESTBLOCK_CASE_5)
+
+    def test_complex_upstream(self):
+        inp_data = nginx.loads(TESTBLOCK_CASE_6)
+        out_data = '\n' + nginx.dumps(inp_data)
+        self.assertEqual(TESTBLOCK_CASE_6, out_data)
+
+    def test_session_sticky(self):
+        inp_data = nginx.loads(TESTBLOCK_CASE_7)
+        out_data = '\n' + nginx.dumps(inp_data)
+        self.assertEqual(TESTBLOCK_CASE_7, out_data)
 
     def test_filtering(self):
         data = nginx.loads(TESTBLOCK_CASE_1)
