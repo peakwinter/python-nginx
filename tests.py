@@ -122,7 +122,6 @@ server {
 }
 """
 
-
 TESTBLOCK_CASE_6 = """
 upstream test0 {
     server 1.1.1.1:8080;
@@ -157,10 +156,10 @@ server {
 
 TESTBLOCK_CASE_8 = r"""
 server {
-    double_qoted "GET /alive.html  HTTP/1.0\n\r\n\r";
-    single_quoted 'GET /alive.html  HTTP/1.0\n\r\n\r';
+    double_qoted "GET /alive.html  HTTP/1.0\r\n\r\n";
+    single_quoted 'GET /alive.html  HTTP/1.0\r\n\r\n';
     two_keys "\n \t";
-    "\nthee" "\rkeys" '\tkeys';
+    "\nthree" "\rkeys" '\tkeys';
     different_chars "\n\r\t\x01\x02\x03";
 }
 """
