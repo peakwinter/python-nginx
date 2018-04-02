@@ -18,6 +18,10 @@ def bump_child_depth(obj, depth):
         bump_child_depth(child, child._depth)
 
 
+def keep_special_chars(s):
+    return s.decode('string-escape').encode('string-escape').replace(r"\'", "'")
+
+
 class Conf(object):
     """
     Represents an nginx configuration.
@@ -364,8 +368,10 @@ class Key(object):
 
         :param *args: Any objects to include in this Server block.
         """
-        self.name = name
-        self.value = value
+
+        self.name = keep_special_chars(name)
+        self.value = keep_special_chars(value)
+
 
     @property
     def as_list(self):
@@ -380,6 +386,7 @@ class Key(object):
     @property
     def as_strings(self):
         """Return key as nginx config string."""
+
         if self.value == '' or self.value is None:
             return '{0};\n'.format(self.name)
         if '"' not in self.value and (';' in self.value or '#' in self.value):

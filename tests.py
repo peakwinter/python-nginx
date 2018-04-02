@@ -127,14 +127,14 @@ TESTBLOCK_CASE_6 = """
 upstream test0 {
     server 1.1.1.1:8080;
     check interval=3000 rise=2 fall=3 timeout=3000 type=http;
-    check_http_send "GET /alive.html  HTTP/1.0\r\n\r\n";
+    check_http_send "GET /alive.html  HTTP/1.0";
     check_http_expect_alive http_2xx http_3xx;
 }
 
 upstream test1 {
     ip_hash;
     server 2.2.2.2:9000;
-    check_http_send 'GET /alive.html  HTTP/1.0\r\n\r\n';
+    check_http_send 'GET /alive.html  HTTP/1.0';
 }
 """
 
@@ -155,6 +155,15 @@ server {
 }
 """
 
+TESTBLOCK_CASE_8 = r"""
+server {
+    double_qoted "GET /alive.html  HTTP/1.0\n\r\n\r";
+    single_quoted 'GET /alive.html  HTTP/1.0\n\r\n\r';
+    two_keys "\n \t";
+    "\nthee" "\rkeys" '\tkeys';
+    different_chars "\n\r\t\x01\x02\x03";
+}
+"""
 
 
 class TestPythonNginx(unittest.TestCase):
@@ -164,57 +173,57 @@ class TestPythonNginx(unittest.TestCase):
     def test_messy_load(self):
         data = nginx.loads(TESTBLOCK_CASE_4)
         self.assertTrue(data is not None)
-        self.assertTrue(len(data.server.comments), 1)
-        self.assertTrue(len(data.server.locations), 1)
+        self.assertTrue(1, len(data.server.comments))
+        self.assertTrue(1, len(data.server.locations))
 
     def test_comment_parse(self):
         data = nginx.loads(TESTBLOCK_CASE_1)
-        self.assertEqual(len(data.server.comments), 4)
-        self.assertEqual(data.server.comments[2].comment, 'And also this one')
+        self.assertEqual(4, len(data.server.comments))
+        self.assertEqual('And also this one', data.server.comments[2].comment)
 
     def test_key_parse(self):
         data = nginx.loads(TESTBLOCK_CASE_1)
-        self.assertEqual(len(data.server.keys), 5)
+        self.assertEqual(5, len(data.server.keys))
         firstKey = data.server.keys[0]
         thirdKey = data.server.keys[3]
-        self.assertEqual(firstKey.name, 'listen')
-        self.assertEqual(firstKey.value, '80')
-        self.assertEqual(thirdKey.name, 'mykey')
-        self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
+        self.assertEqual('listen', firstKey.name)
+        self.assertEqual('80', firstKey.value)
+        self.assertEqual('mykey', thirdKey.name)
+        self.assertEqual('"myvalue; #notme myothervalue"', thirdKey.value)
 
     def test_key_parse_complex(self):
         data = nginx.loads(TESTBLOCK_CASE_2)
-        self.assertEqual(len(data.server.keys), 6)
+        self.assertEqual(6, len(data.server.keys))
         firstKey = data.server.keys[0]
         thirdKey = data.server.keys[3]
         fourthKey = data.server.keys[4]
-        self.assertEqual(firstKey.name, 'listen')
-        self.assertEqual(firstKey.value, '80')
-        self.assertEqual(thirdKey.name, 'mykey')
-        self.assertEqual(thirdKey.value, '"myvalue; #notme myothervalue"')
+        self.assertEqual('listen', firstKey.name)
+        self.assertEqual('80', firstKey.value)
+        self.assertEqual('mykey', thirdKey.name)
+        self.assertEqual('"myvalue; #notme myothervalue"', thirdKey.value)
         self.assertEqual(
-            data.server.locations[-1].keys[0].value,
-            "301 $scheme://$host:$server_port${request_uri}bitbucket/"
+            "301 $scheme://$host:$server_port${request_uri}bitbucket/",
+            data.server.locations[-1].keys[0].value
         )
-        self.assertEqual(fourthKey.name, '"quoted_key"')
-        self.assertEqual(fourthKey.value, '"quoted_value"')
+        self.assertEqual('"quoted_key"', fourthKey.name)
+        self.assertEqual('"quoted_value"', fourthKey.value)
 
     def test_location_parse(self):
         data = nginx.loads(TESTBLOCK_CASE_1)
-        self.assertEqual(len(data.server.locations), 1)
+        self.assertEqual(1, len(data.server.locations))
         firstLoc = data.server.locations[0]
-        self.assertEqual(firstLoc.value, '~ \.php(?:$|/)')
-        self.assertEqual(len(firstLoc.keys), 1)
+        self.assertEqual('~ \.php(?:$|/)', firstLoc.value)
+        self.assertEqual(1, len(firstLoc.keys))
 
     def test_brace_position(self):
         data = nginx.loads(TESTBLOCK_CASE_3)
-        self.assertEqual(len(data.filter('Upstream')), 3)
+        self.assertEqual(3, len(data.filter('Upstream')))
 
     def test_single_value_keys(self):
         data = nginx.loads(TESTBLOCK_CASE_3)
         single_value_key = data.filter('Upstream')[0].keys[0]
-        self.assertEqual(single_value_key.name, 'ip_hash')
-        self.assertEqual(single_value_key.value, '')
+        self.assertEqual('ip_hash', single_value_key.name)
+        self.assertEqual('', single_value_key.value)
 
     def test_reflection(self):
         inp_data = nginx.loads(TESTBLOCK_CASE_1)
@@ -224,7 +233,7 @@ class TestPythonNginx(unittest.TestCase):
     def test_quoted_key_value(self):
         data = nginx.loads(TESTBLOCK_CASE_5)
         out_data = '\n' + nginx.dumps(data)
-        self.assertEqual(out_data, TESTBLOCK_CASE_5)
+        self.assertEqual(TESTBLOCK_CASE_5, out_data)
 
     def test_complex_upstream(self):
         inp_data = nginx.loads(TESTBLOCK_CASE_6)
@@ -240,6 +249,11 @@ class TestPythonNginx(unittest.TestCase):
         data = nginx.loads(TESTBLOCK_CASE_1)
         self.assertEqual(len(data.server.filter('Key', 'mykey')), 1)
         self.assertEqual(data.server.filter('Key', 'nothere'), [])
+
+    def test_special_chars(self):
+        inp_data = nginx.loads(TESTBLOCK_CASE_8)
+        out_data = '\n' + nginx.dumps(inp_data)
+        self.assertEqual(TESTBLOCK_CASE_8, out_data)
 
 
 if __name__ == '__main__':
