@@ -5,14 +5,14 @@ If you're reading this, you'd like to contribute to one of my open source projec
 
 ### General Resources
 
- * **[Coderouge (GitLab)](https://git.coderouge.co)** is the primary destination for this project's source code repository, issue tracker, contribution management (pull requests) and testing infrastructure / CI.
- * If you're reading this on **GitHub**: this is kept as a mirror of the main repo that is hosted on the aforementioned GitLab instance. If you have quick contributions to make in the way of issues or pull requests, then feel free to do so here and I will migrate them back to the main repo. If you would like to be more involved in this project, however, I'd invite you to work from the GitLab instance - it's faster, snazzier and more directly connected to testing infrastructure.
+ * **[Github](https://github.com/peakwinter/python-nginx)** is the primary destination for this project's source code repository, issue tracker, and contribution management (pull requests).
+ * Testing infrastructure / CI can be found at **[Travis-CI](https://travis-ci.org/peakwinter/python-nginx)**.
  * Documentation for development is kept in `README.md`, changelogs in `CHANGELOG`.
 
 
 ### Submitting Pull Requests
 
-Pull requests are a great way to add a new feature for yourself to use, and to help others who might be using this project along the way. Please follow the style guide below for your code submissions, and don't forget to adequately test your code before you make the request. I'll get to it as soon as I can, and review it with you if need be.
+Pull requests are a great way to add a new feature for yourself to use, and to help others who might be using this project along the way. Please follow the style guide below for your code submissions, add unit tests if at all possible, and don't forget to adequately test your code functionally before you make the request. I'll get to it as soon as I can, and review it with you if need be.
 
 
 ### Filing Bugs
@@ -52,7 +52,7 @@ I try to use all of my projects as an example of what positive and respectful ef
 
 ### Asking for Help
 
-If you'd like to ask questions about contributing to this project or about the code contained within, feel free! My profile page on GitHub/GitLab will have links to my Twitter account or my email, I will respond whenever possible.
+If you'd like to ask questions about contributing to this project or about the code contained within, feel free! My profile page on GitHub will have links to my Twitter account or my email, I will respond whenever possible.
 
 
 # Thank you!

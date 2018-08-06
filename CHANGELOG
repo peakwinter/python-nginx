@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.0] - 2018-08-06
+### Features
+- Supports managing `stream` configuration blocks (thanks @xannz!)
+
+## [1.4.1] - 2018-04-01
+### Fixed
+- A small error in packaging that prevented installs from PyPI.
+
 ## [1.4.0] - 2018-04-01
 ### Fixed
 - Fixed bugs in parsing single key values and quoted keys/values (thanks @fulder!)

@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='python-nginx',
-    version='1.4',
+    version='1.5.0',
     description='Create and modify nginx serverblock configs in Python',
     author='Jacob Cook',
     author_email='jacob@peakwinter.net',
