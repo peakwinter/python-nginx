@@ -355,6 +355,15 @@ class Map(Container):
         self.name = 'map'
 
 
+class Stream(Container):
+    """Container for stream sections in the main NGINX conf file."""
+
+    def __init__(self, *args):
+        """Initialize."""
+        super(Stream, self).__init__('', *args)
+        self.name = 'stream'
+
+
 class Key(object):
     """Represents a simple key/value object found in an nginx config."""
 
@@ -410,6 +419,13 @@ def loads(data, conf=True):
         if m:
             h = Http()
             lopen.insert(0, h)
+            index += m.end()
+            continue
+
+        m = re.compile(r'^\s*stream\s*{', re.S).search(data[index:])
+        if m:
+            s = Stream()
+            lopen.insert(0, s)
             index += m.end()
             continue
 
