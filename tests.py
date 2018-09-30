@@ -155,6 +155,12 @@ server {
 }
 """
 
+TESTBLOCK_CASE_8 = """
+location /M01 {
+    proxy_pass http://backend;
+    limit_except GET POST {deny all;}
+}
+"""
 
 
 class TestPythonNginx(unittest.TestCase):
@@ -240,6 +246,18 @@ class TestPythonNginx(unittest.TestCase):
         data = nginx.loads(TESTBLOCK_CASE_1)
         self.assertEqual(len(data.server.filter('Key', 'mykey')), 1)
         self.assertEqual(data.server.filter('Key', 'nothere'), [])
+
+    def test_limit_expect(self):
+        data = nginx.loads(TESTBLOCK_CASE_8)
+        self.assertEqual(len(data.filter("Location")), 1)
+        self.assertEqual(len(data.filter("Location")[0].children), 2)
+        self.assertEqual(len(data.filter("Location")[0].filter("LimitExcept")), 1)
+        limit_except = data.filter("Location")[0].filter("LimitExcept")[0]
+        self.assertEqual(limit_except.value, "GET POST")
+        self.assertEqual(len(limit_except.children), 1)
+        first_key = limit_except.filter("Key")[0]
+        self.assertEqual(first_key.name, "deny")
+        self.assertEqual(first_key.value, "all")
 
 
 if __name__ == '__main__':

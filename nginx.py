@@ -471,6 +471,13 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
+        m = re.compile(r'^\s*limit_except\s*(.*?)\s*{', re.S).search(data[index:])
+        if m:
+            l = LimitExcept(m.group(1))
+            lopen.insert(0, l)
+            index += m.end()
+            continue
+
         m = re.compile(r'^(\s*)#\s*(.*?)\n', re.S).search(data[index:])
         if m:
             c = Comment(m.group(2), inline='\n' not in m.group(1))
