@@ -162,6 +162,11 @@ location /M01 {
 }
 """
 
+TESTBLOCK_CASE_9 = """
+location test9 {
+    add_header X-XSS-Protection "1;mode-block";
+}
+"""
 
 class TestPythonNginx(unittest.TestCase):
     def test_basic_load(self):
@@ -258,6 +263,14 @@ class TestPythonNginx(unittest.TestCase):
         first_key = limit_except.filter("Key")[0]
         self.assertEqual(first_key.name, "deny")
         self.assertEqual(first_key.value, "all")
+
+    def test_semicolon_in_second_key_value(self):
+        inp_data = nginx.loads(TESTBLOCK_CASE_9)
+        self.assertEqual(len(inp_data.filter("Location")), 1)
+        location_children = inp_data.filter("Location")[0].children
+        self.assertEqual(len(location_children), 1)
+        self.assertEqual(location_children[0].name, "add_header")
+        self.assertEqual(location_children[0].value, 'X-XSS-Protection "1;mode-block"')
 
 
 if __name__ == '__main__':

@@ -500,13 +500,14 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        s1 = r'("[^"]+"|\'[^\']+\'|[^\s;]+)'
-        s2 = r'("[^"]*"|\'[^\']*\'|[^\s;]*)'
-        s3 = r'(\s*[^;]*?)'
-        key = r'^\s*{}\s*{}{};'.format(s1, s2, s3)
-        m = re.compile(key, re.S).search(data[index:])
+        double = r'\s*"[^"]*"'
+        single = r'\s*\'[^\']*\''
+        normal = r'\s*[^;\s]*'
+        s1 = r'{}|{}|{}'.format(double, single, normal)
+        s = r'^\s*({})\s*((?:{})+);'.format(s1, s1)
+        m = re.compile(s, re.S).search(data[index:])
         if m:
-            k = Key(m.group(1), m.group(2) + m.group(3))
+            k = Key(m.group(1), m.group(2))
             if lopen and isinstance(lopen[0], (Container, Server)):
                 lopen[0].add(k)
             else:
