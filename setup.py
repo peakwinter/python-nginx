@@ -4,14 +4,14 @@ from setuptools import setup
 
 setup(
     name='python-nginx',
-    version='1.5.1',
+    version='1.5.2',
     description='Create and modify nginx serverblock configs in Python',
     author='Jacob Cook',
     author_email='jacob@peakwinter.net',
     url='https://github.com/peakwinter/python-nginx',
     py_modules=['nginx'],
     keywords=['nginx', 'web servers', 'serverblock', 'server block'],
-    download_url='https://git.coderouge.co/coderouge/python-nginx/repository/archive.zip?ref=master',
+    download_url='https://github.com/peakwinter/python-nginx/archive/1.5.2.zip',
     license='GPLv3',
     classifiers=[
         "Development Status :: 5 - Production/Stable",

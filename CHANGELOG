@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.2] - 2018-11-28
+### Fixed
+- Fixed bug in parsing semicolons in quoted values, notably `if` keys (thanks @fulder!)
+
+## [1.5.1] - 2018-10-06
+### Fixed
+- Fixed bug in parsing `limit_except` parameters (thanks @fulder!)
+
 ## [1.5.0] - 2018-08-06
 ### Features
 - Supports managing `stream` configuration blocks (thanks @xannz!)
