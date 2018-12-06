@@ -436,42 +436,42 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*location\s+([^;].*?)\s+{', re.S).search(data[index:])
+        m = re.compile(r'^\s*location\s*([^;].*?)\s*{', re.S).search(data[index:])
         if m:
             l = Location(m.group(1))
             lopen.insert(0, l)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*if\s+([^;].*?)\s+{', re.S).search(data[index:])
+        m = re.compile(r'^\s*if\s*([^;].*?)\s*{', re.S).search(data[index:])
         if m:
             ifs = If(m.group(1))
             lopen.insert(0, ifs)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*upstream\s+([^;].*?)\s+{', re.S).search(data[index:])
+        m = re.compile(r'^\s*upstream\s*([^;].*?)\s*{', re.S).search(data[index:])
         if m:
             u = Upstream(m.group(1))
             lopen.insert(0, u)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*geo\s+([^;].*?)\s+{', re.S).search(data[index:])
+        m = re.compile(r'^\s*geo\s*([^;].*?)\s*{', re.S).search(data[index:])
         if m:
             g = Geo(m.group(1))
             lopen.insert(0, g)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*map\s+([^;].*?)\s+{', re.S).search(data[index:])
+        m = re.compile(r'^\s*map\s*([^;].*?)\s*{', re.S).search(data[index:])
         if m:
             g = Map(m.group(1))
             lopen.insert(0, g)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*limit_except\s+([^;].*?)\s+{', re.S).search(data[index:])
+        m = re.compile(r'^\s*limit_except\s*([^;].*?)\s*{', re.S).search(data[index:])
         if m:
             l = LimitExcept(m.group(1))
             lopen.insert(0, l)
