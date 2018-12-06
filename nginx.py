@@ -485,7 +485,7 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        m = re.compile(r'^(\s*)#\s*(.*?)\n', re.S).search(data[index:])
+        m = re.compile(r'^(\s*)#[ \r\t\f]*(.*?)\n', re.S).search(data[index:])
         if m:
             c = Comment(m.group(2), inline='\n' not in m.group(1))
             if lopen and isinstance(lopen[0], Container):
