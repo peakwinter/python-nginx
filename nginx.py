@@ -436,7 +436,7 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*location\s*([^;].*?)\s*{', re.S).search(data[index:])
+        m = re.compile(r'^\s*location\s*([^;]*?)\s*{', re.S).search(data[index:])
         if m:
             l = Location(m.group(1))
             lopen.insert(0, l)
