@@ -168,6 +168,16 @@ location test9 {
 }
 """
 
+TESTBLOCK_CASE_10 = """
+types {
+    application/CEA                                 cea;
+    application/cellml+xml                          cellml cml;
+    application/clue_info+xml                       clue;
+    application/cms                                 cmsc;
+}
+"""
+
+
 class TestPythonNginx(unittest.TestCase):
     def test_basic_load(self):
         self.assertTrue(nginx.loads(TESTBLOCK_CASE_1) is not None)
@@ -272,6 +282,13 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(location_children[0].name, "add_header")
         self.assertEqual(location_children[0].value, 'X-XSS-Protection "1;mode-block"')
 
+    def test_types_block(self):
+        inp_data = nginx.loads(TESTBLOCK_CASE_10)
+        self.assertEqual(len(inp_data.filter("Types")), 1)
+        self.assertEqual(len(inp_data.filter("Types")[0].children), 4)
+        self.assertEqual(len(inp_data.filter("Types")[0].filter("Key")), 4)
+        data_type = inp_data.filter("Types")[0].filter("Key")[0]
+        self.assertEqual(data_type.value, "cea")
 
 if __name__ == '__main__':
     unittest.main()
