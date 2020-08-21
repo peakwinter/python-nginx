@@ -11,6 +11,14 @@ import re
 INDENT = '    '
 
 
+class Error(Exception):
+    pass
+
+
+class ParseError(Error):
+    pass
+
+
 def bump_child_depth(obj, depth):
     children = getattr(obj, 'children', [])
     for child in children:
@@ -67,7 +75,7 @@ class Conf(object):
         for x in self.children:
             if name and isinstance(x, Key) and x.name == name:
                 filtered.append(x)
-            elif isinstance(x, Container) and x.__class__.__name__ == btype\
+            elif isinstance(x, Container) and x.__class__.__name__ == btype \
                     and x.value == name:
                 filtered.append(x)
             elif not name and btype and x.__class__.__name__ == btype:
@@ -164,7 +172,7 @@ class Container(object):
         for x in self.children:
             if name and isinstance(x, Key) and x.name == name:
                 filtered.append(x)
-            elif isinstance(x, Container) and x.__class__.__name__ == btype\
+            elif isinstance(x, Container) and x.__class__.__name__ == btype \
                     and x.value == name:
                 filtered.append(x)
             elif not name and btype and x.__class__.__name__ == btype:
@@ -506,6 +514,11 @@ def loads(data, conf=True):
                     f.add(c) if conf else f.append(c)
             index += m.end()
             continue
+
+        if ";" not in data[index:] and index+1 != len(data):
+            # If there is still something to parse, expect ';' otherwise
+            # the Key regexp can get stuck due to regexp catastrophic backtracking
+            raise ParseError(f"Config syntax, missing ';' at index: {index}")
 
         double = r'\s*"[^"]*"'
         single = r'\s*\'[^\']*\''
