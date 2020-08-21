@@ -518,7 +518,7 @@ def loads(data, conf=True):
         if ";" not in data[index:] and index+1 != len(data):
             # If there is still something to parse, expect ';' otherwise
             # the Key regexp can get stuck due to regexp catastrophic backtracking
-            raise ParseError(f"Config syntax, missing ';' at index: {index}")
+            raise ParseError("Config syntax, missing ';' at index: {}".format(index))
 
         double = r'\s*"[^"]*"'
         single = r'\s*\'[^\']*\''
