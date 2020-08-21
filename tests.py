@@ -7,6 +7,7 @@ Licensed under GPLv3, see LICENSE.md
 """
 
 # flake8: noqa
+import pytest
 
 import nginx
 import unittest
@@ -177,6 +178,22 @@ types {
 }
 """
 
+TESTBLOCK_CASE_11 = """
+server{
+    listen 80;
+    #OPEN-PORT-443
+    listen 443 ssl;
+    server_name www.xxx.com;
+    root /wwww/wwww;
+
+    location ~ .*\.(js|css)?$ {
+        expires 12h;
+        error_log off;
+        access_log /dev/null  # MISSING SEMICOLON
+    }
+}
+"""
+
 
 class TestPythonNginx(unittest.TestCase):
     def test_basic_load(self):
@@ -289,6 +306,12 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(len(inp_data.filter("Types")[0].filter("Key")), 4)
         data_type = inp_data.filter("Types")[0].filter("Key")[0]
         self.assertEqual(data_type.value, "cea")
+
+    def test_missing_semi_colon(self):
+        with pytest.raises(nginx.ParseError) as e:
+            nginx.loads(TESTBLOCK_CASE_11)
+        self.assertEqual(str(e.value), "Config syntax, missing ';' at index: 189")
+
 
 if __name__ == '__main__':
     unittest.main()
