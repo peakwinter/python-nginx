@@ -194,6 +194,10 @@ server{
 }
 """
 
+TESTBLOCK_CASE_12 = """
+server{
+}"""
+
 
 class TestPythonNginx(unittest.TestCase):
     def test_basic_load(self):
@@ -311,6 +315,9 @@ class TestPythonNginx(unittest.TestCase):
         with pytest.raises(nginx.ParseError) as e:
             nginx.loads(TESTBLOCK_CASE_11)
         self.assertEqual(str(e.value), "Config syntax, missing ';' at index: 189")
+
+    def test_server_without_last_linebreak(self):
+        self.assertTrue(nginx.loads(TESTBLOCK_CASE_12) is not None)
 
 
 if __name__ == '__main__':
