@@ -29,7 +29,7 @@ Create an nginx serverblock and save it to file:
     ...          nginx.Key('allow', 'all'),
     ...          nginx.Key('log_not_found', 'off'),
     ...          nginx.Key('access_log', 'off')
-    ...     )
+    ...     ),
     ...     nginx.Location('~ \.php$',
     ...          nginx.Key('include', 'fastcgi.conf'),
     ...          nginx.Key('fastcgi_intercept_errors', 'on'),
