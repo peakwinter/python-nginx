@@ -167,6 +167,10 @@ TESTBLOCK_CASE_9 = """
 location test9 {
     add_header X-XSS-Protection "1;mode-block";
 }
+
+if ( $http_user_agent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)" ) {
+    return 403;
+}
 """
 
 TESTBLOCK_CASE_10 = """
@@ -195,6 +199,21 @@ server{
 """
 
 TESTBLOCK_CASE_12 = """
+server {
+    listen 80;
+    server_name test.example.com;
+
+    location ~ "^/(test|[0-9a-zA-Z]{6})$" {
+        if ($query_string ~ pid=(111)) {
+            return 403;
+        }
+
+        proxy_pass http://127.0.0.1:81;
+    }
+}
+"""
+
+TESTBLOCK_CASE_13 = """
 server{
 }"""
 
@@ -302,6 +321,8 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(len(location_children), 1)
         self.assertEqual(location_children[0].name, "add_header")
         self.assertEqual(location_children[0].value, 'X-XSS-Protection "1;mode-block"')
+        self.assertEqual(len(inp_data.filter("If")), 1)
+        self.assertEqual(inp_data.filter("If")[0].value, "( $http_user_agent = \"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)\" )")
 
     def test_types_block(self):
         inp_data = nginx.loads(TESTBLOCK_CASE_10)
@@ -316,8 +337,13 @@ class TestPythonNginx(unittest.TestCase):
             nginx.loads(TESTBLOCK_CASE_11)
         self.assertEqual(str(e.value), "Config syntax, missing ';' at index: 189")
 
+    def test_brace_inside_block_param(self):
+        inp_data = nginx.loads(TESTBLOCK_CASE_12)
+        self.assertEqual(len(inp_data.server.filter("Location")), 1)
+        self.assertEqual(inp_data.server.filter("Location")[0].value, "~ \"^/(test|[0-9a-zA-Z]{6})$\"")
+
     def test_server_without_last_linebreak(self):
-        self.assertTrue(nginx.loads(TESTBLOCK_CASE_12) is not None)
+        self.assertTrue(nginx.loads(TESTBLOCK_CASE_13) is not None)
 
 
 if __name__ == '__main__':

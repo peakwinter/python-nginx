@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.5] - 2021-03-11
+### Fixed
+- Fixed bugs in parsing lines that contain a semicolon or curly brace inside of quotes
+- Fixed bug in creating new Keys in which the value isn't a string but is still stringable (int)
+
+## [1.5.4] - 2020-08-21
+### Fixed
+- Warn user if successful parsing of a config is impossible due to missing semicolon (thanks @fulder!)
+
 ## [1.5.3] - 2018-12-10
 ### Fixed
 - Fixed bug in parsing Type directives as well as misidentifying certain possible key names (thanks @SGamoff and @fulder!)

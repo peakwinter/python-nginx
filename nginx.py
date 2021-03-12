@@ -399,7 +399,7 @@ class Key(object):
         """Return key as nginx config string."""
         if self.value == '' or self.value is None:
             return '{0};\n'.format(self.name)
-        if '"' not in self.value and (';' in self.value or '#' in self.value):
+        if type(self.value) == str and '"' not in self.value and (';' in self.value or '#' in self.value):
             return '{0} "{1}";\n'.format(self.name, self.value)
         return '{0} {1};\n'.format(self.name, self.value)
 
@@ -444,43 +444,44 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*location\s*([^;]*?)\s*{', re.S).search(data[index:])
-        if m:
+        n = re.compile(r'(?!\B"[^"]*);(?![^"]*"\B)')
+        m = re.compile(r'^\s*location\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        if m and not n.search(m.group()):
             l = Location(m.group(1))
             lopen.insert(0, l)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*if\s*([^;]*?)\s*{', re.S).search(data[index:])
-        if m:
+        m = re.compile(r'^\s*if\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        if m and not n.search(m.group()):
             ifs = If(m.group(1))
             lopen.insert(0, ifs)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*upstream\s*([^;]*?)\s*{', re.S).search(data[index:])
-        if m:
+        m = re.compile(r'^\s*upstream\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        if m and not n.search(m.group()):
             u = Upstream(m.group(1))
             lopen.insert(0, u)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*geo\s*([^;]*?)\s*{', re.S).search(data[index:])
-        if m:
+        m = re.compile(r'^\s*geo\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        if m and not n.search(m.group()):
             g = Geo(m.group(1))
             lopen.insert(0, g)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*map\s*([^;]*?)\s*{', re.S).search(data[index:])
-        if m:
+        m = re.compile(r'^\s*map\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        if m and not n.search(m.group()):
             g = Map(m.group(1))
             lopen.insert(0, g)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*limit_except\s*([^;]*?)\s*{', re.S).search(data[index:])
-        if m:
+        m = re.compile(r'^\s*limit_except\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        if m and not n.search(m.group()):
             l = LimitExcept(m.group(1))
             lopen.insert(0, l)
             index += m.end()
