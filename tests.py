@@ -222,6 +222,8 @@ TESTBLOCK_CASE_13 = """
 server{
 }"""
 
+TESTBLOCK_CASE_14 = """user  nginx;"""
+
 
 class TestPythonNginx(unittest.TestCase):
     def test_basic_load(self):
@@ -350,6 +352,7 @@ class TestPythonNginx(unittest.TestCase):
 
     def test_server_without_last_linebreak(self):
         self.assertTrue(nginx.loads(TESTBLOCK_CASE_13) is not None)
+        self.assertTrue(nginx.loads(TESTBLOCK_CASE_14) is not None)
 
 
 if __name__ == '__main__':
