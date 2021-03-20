@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.6] - 2021-03-20
+### Fixed
+- Fixed additional bugs in parsing lines with semicolons or curly braces when quotation marks are involved
+- Fixed bug in parsing configs without a final linebreak (thanks @fulder!)
+
+### Features
+- Set `nginx.DEBUG` to True to show logging output of what is being parsed
+
 ## [1.5.5] - 2021-03-11
 ### Fixed
 - Fixed bugs in parsing lines that contain a semicolon or curly brace inside of quotes
