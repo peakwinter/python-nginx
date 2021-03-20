@@ -522,7 +522,7 @@ def loads(data, conf=True):
         m = re.compile(r'^\s*}').search(data[index:])
         if m:
             if isinstance(lopen[0], Container):
-                logging.debug(f"Close ({lopen[0].__class__.__name__})")
+                logging.debug("Close ({0})".format(lopen[0].__class__.__name__))
                 c = lopen[0]
                 lopen.pop(0)
                 if lopen and isinstance(lopen[0], Container):
