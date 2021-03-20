@@ -171,6 +171,11 @@ location test9 {
 if ( $http_user_agent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)" ) {
     return 403;
 }
+
+location ~* ^/portal {
+    proxy_set_header Connection "";
+    rewrite ^/portal(.*) $1 break;
+}
 """
 
 TESTBLOCK_CASE_10 = """
@@ -314,15 +319,16 @@ class TestPythonNginx(unittest.TestCase):
         self.assertEqual(first_key.name, "deny")
         self.assertEqual(first_key.value, "all")
 
-    def test_semicolon_in_second_key_value(self):
+    def test_key_value_quotes(self):
         inp_data = nginx.loads(TESTBLOCK_CASE_9)
-        self.assertEqual(len(inp_data.filter("Location")), 1)
+        self.assertEqual(len(inp_data.filter("Location")), 2)
         location_children = inp_data.filter("Location")[0].children
         self.assertEqual(len(location_children), 1)
         self.assertEqual(location_children[0].name, "add_header")
         self.assertEqual(location_children[0].value, 'X-XSS-Protection "1;mode-block"')
         self.assertEqual(len(inp_data.filter("If")), 1)
         self.assertEqual(inp_data.filter("If")[0].value, "( $http_user_agent = \"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)\" )")
+        self.assertEqual(inp_data.filter("Location")[1].filter("Key", "proxy_set_header")[0].value, "Connection \"\"")
 
     def test_types_block(self):
         inp_data = nginx.loads(TESTBLOCK_CASE_10)

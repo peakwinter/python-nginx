@@ -7,9 +7,11 @@ Licensed under GPLv3, see LICENSE.md
 """
 
 import re
+import logging
 
 INDENT = '    '
 
+logging.basicConfig(level=logging.INFO)
 
 class Error(Exception):
     pass
@@ -416,86 +418,98 @@ def loads(data, conf=True):
     index = 0
 
     while True:
-        m = re.compile(r'^\s*events\s*{', re.S).search(data[index:])
+        m = re.compile(r'^\s*events\s*{').search(data[index:])
         if m:
+            logging.debug("Open (Events)")
             e = Events()
             lopen.insert(0, e)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*http\s*{', re.S).search(data[index:])
+        m = re.compile(r'^\s*http\s*{').search(data[index:])
         if m:
+            logging.debug("Open (Http)")
             h = Http()
             lopen.insert(0, h)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*stream\s*{', re.S).search(data[index:])
+        m = re.compile(r'^\s*stream\s*{').search(data[index:])
         if m:
+            logging.debug("Open (Stream)")
             s = Stream()
             lopen.insert(0, s)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*server\s*{', re.S).search(data[index:])
+        m = re.compile(r'^\s*server\s*{').search(data[index:])
         if m:
+            logging.debug("Open (Server)")
             s = Server()
             lopen.insert(0, s)
             index += m.end()
             continue
 
         n = re.compile(r'(?!\B"[^"]*);(?![^"]*"\B)')
-        m = re.compile(r'^\s*location\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        m = re.compile(r'^\s*location\s+(.*?".*?".*?|.*?)\s*{').search(data[index:])
         if m and not n.search(m.group()):
+            logging.debug(f"Open (Location) {m.group(1)}")
             l = Location(m.group(1))
             lopen.insert(0, l)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*if\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        m = re.compile(r'^\s*if\s+(.*?".*?".*?|.*?)\s*{').search(data[index:])
         if m and not n.search(m.group()):
+            logging.debug(f"Open (If) {m.group(1)}")
             ifs = If(m.group(1))
             lopen.insert(0, ifs)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*upstream\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        m = re.compile(r'^\s*upstream\s+(.*?)\s*{').search(data[index:])
         if m and not n.search(m.group()):
+            logging.debug(f"Open (Upstream) {m.group(1)}")
             u = Upstream(m.group(1))
             lopen.insert(0, u)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*geo\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        m = re.compile(r'^\s*geo\s+(.*?".*?".*?|.*?)\s*{').search(data[index:])
         if m and not n.search(m.group()):
+            logging.debug(f"Open (Geo) {m.group(1)}")
             g = Geo(m.group(1))
             lopen.insert(0, g)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*map\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        m = re.compile(r'^\s*map\s+(.*?".*?".*?|.*?)\s*{').search(data[index:])
         if m and not n.search(m.group()):
+            logging.debug(f"Open (Map) {m.group(1)}")
             g = Map(m.group(1))
             lopen.insert(0, g)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*limit_except\s+(.*?)\s*(?!\B"[^"]*){(?![^"]*"\B)', re.S).search(data[index:])
+        m = re.compile(r'^\s*limit_except\s+(.*?".*?".*?|.*?)\s*{').search(data[index:])
         if m and not n.search(m.group()):
+            logging.debug(f"Open (LimitExcept) {m.group(1)}")
             l = LimitExcept(m.group(1))
             lopen.insert(0, l)
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*types\s*{', re.S).search(data[index:])
+        m = re.compile(r'^\s*types\s*{').search(data[index:])
         if m:
+            logging.debug("Open (Types)")
             l = Types()
             lopen.insert(0, l)
             index += m.end()
             continue
 
-        m = re.compile(r'^(\s*)#[ \r\t\f]*(.*?)\n', re.S).search(data[index:])
+        m = re.compile(r'^(\s*)#[ \r\t\f]*(.*?)\n').search(data[index:])
         if m:
+            logging.debug(f"Comment ({m.group(2)})")
             c = Comment(m.group(2), inline='\n' not in m.group(1))
             if lopen and isinstance(lopen[0], Container):
                 lopen[0].add(c)
@@ -504,9 +518,10 @@ def loads(data, conf=True):
             index += m.end() - 1
             continue
 
-        m = re.compile(r'^\s*}', re.S).search(data[index:])
+        m = re.compile(r'^\s*}').search(data[index:])
         if m:
             if isinstance(lopen[0], Container):
+                logging.debug(f"Close ({lopen[0].__class__.__name__})")
                 c = lopen[0]
                 lopen.pop(0)
                 if lopen and isinstance(lopen[0], Container):
@@ -526,8 +541,9 @@ def loads(data, conf=True):
         normal = r'\s*[^;\s]*'
         s1 = r'{}|{}|{}'.format(double, single, normal)
         s = r'^\s*({})\s*((?:{})+);'.format(s1, s1)
-        m = re.compile(s, re.S).search(data[index:])
+        m = re.compile(s).search(data[index:])
         if m:
+            logging.debug(f"Key {m.group(1)} {m.group(2)}")
             k = Key(m.group(1), m.group(2))
             if lopen and isinstance(lopen[0], (Container, Server)):
                 lopen[0].add(k)
@@ -536,8 +552,9 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        m = re.compile(r'^\s*(\S+);', re.S).search(data[index:])
+        m = re.compile(r'^\s*(\S+);').search(data[index:])
         if m:
+            logging.debug(f"Key {m.group(1)}")
             k = Key(m.group(1), '')
             if lopen and isinstance(lopen[0], (Container, Server)):
                 lopen[0].add(k)
