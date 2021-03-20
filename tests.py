@@ -213,6 +213,10 @@ server {
 }
 """
 
+TESTBLOCK_CASE_13 = """
+server{
+}"""
+
 
 class TestPythonNginx(unittest.TestCase):
     def test_basic_load(self):
@@ -332,11 +336,14 @@ class TestPythonNginx(unittest.TestCase):
         with pytest.raises(nginx.ParseError) as e:
             nginx.loads(TESTBLOCK_CASE_11)
         self.assertEqual(str(e.value), "Config syntax, missing ';' at index: 189")
-    
+
     def test_brace_inside_block_param(self):
         inp_data = nginx.loads(TESTBLOCK_CASE_12)
         self.assertEqual(len(inp_data.server.filter("Location")), 1)
         self.assertEqual(inp_data.server.filter("Location")[0].value, "~ \"^/(test|[0-9a-zA-Z]{6})$\"")
+
+    def test_server_without_last_linebreak(self):
+        self.assertTrue(nginx.loads(TESTBLOCK_CASE_13) is not None)
 
 
 if __name__ == '__main__':

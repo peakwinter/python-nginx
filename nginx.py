@@ -516,7 +516,7 @@ def loads(data, conf=True):
             index += m.end()
             continue
 
-        if ";" not in data[index:] and index+1 != len(data):
+        if ";" not in data[index:] and "}" in data[index:]:
             # If there is still something to parse, expect ';' otherwise
             # the Key regexp can get stuck due to regexp catastrophic backtracking
             raise ParseError("Config syntax, missing ';' at index: {}".format(index))
