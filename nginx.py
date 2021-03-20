@@ -10,8 +10,9 @@ import re
 import logging
 
 INDENT = '    '
+DEBUG=False
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG if DEBUG else logging.INFO)
 
 class Error(Exception):
     pass
