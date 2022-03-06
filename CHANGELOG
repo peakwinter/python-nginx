@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.5.7] - 2022-03-06
+### Features
+- Consider parent logging settings and use module name for logging (thanks @chikko80!)
+
 ## [1.5.6] - 2021-03-20
 ### Fixed
 - Fixed additional bugs in parsing lines with semicolons or curly braces when quotation marks are involved

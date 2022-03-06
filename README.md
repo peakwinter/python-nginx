@@ -1,6 +1,6 @@
 ## python-nginx
 
-[![](https://travis-ci.org/peakwinter/python-nginx.svg?branch=master)](https://travis-ci.org/peakwinter/python-nginx)
+![build](https://github.com/peakwinter/python-nginx/actions/workflows/ci.yml/badge.svg)
 
 A module for easily creating and modifying nginx serverblock configurations in Python (including comments!).
 

@@ -6,7 +6,7 @@ If you're reading this, you'd like to contribute to one of my open source projec
 ### General Resources
 
  * **[Github](https://github.com/peakwinter/python-nginx)** is the primary destination for this project's source code repository, issue tracker, and contribution management (pull requests).
- * Testing infrastructure / CI can be found at **[Travis-CI](https://travis-ci.org/peakwinter/python-nginx)**.
+ * Testing infrastructure / CI can be found in the **[Github Action](https://github.com/peakwinter/python-nginx/blob/master/.github/workflows/ci.yml)**.
  * Documentation for development is kept in `README.md`, changelogs in `CHANGELOG`.
 
 
