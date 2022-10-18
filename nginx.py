@@ -418,6 +418,7 @@ def loads(data, conf=True):
     f = Conf() if conf else []
     lopen = []
     index = 0
+    data = data.strip()
 
     while True:
         m = re.compile(r'^\s*events\s*{').search(data[index:])
