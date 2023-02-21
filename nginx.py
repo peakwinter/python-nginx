@@ -252,6 +252,9 @@ class Comment(object):
         self.comment = comment
         self.inline = inline
 
+    def __repr__(self):
+        return "<nginx.Comment object ({0})>".format(self.comment)
+
     @property
     def as_list(self):
         """Return comment as nested list of strings."""
@@ -299,6 +302,9 @@ class Location(Container):
         super(Location, self).__init__(value, *args)
         self.name = 'location'
 
+    def __repr__(self):
+        return "<nginx.Location object ({0})>".format(self.value)
+
 
 class Events(Container):
     """Container for Event-based options."""
@@ -344,6 +350,9 @@ class Upstream(Container):
         super(Upstream, self).__init__(value, *args)
         self.name = 'upstream'
 
+    def __repr__(self):
+        return "<nginx.Upstream object ({0})>".format(self.value)
+
 
 class Geo(Container):
     """
@@ -366,6 +375,9 @@ class Map(Container):
         super(Map, self).__init__(value, *args)
         self.name = 'map'
 
+    def __repr__(self):
+        return "<nginx.Map object ({0})>".format(self.value)
+
 
 class Stream(Container):
     """Container for stream sections in the main NGINX conf file."""
@@ -387,6 +399,9 @@ class Key(object):
         """
         self.name = name
         self.value = value
+
+    def __repr__(self):
+        return "<nginx.Key object ({0})>".format(self.name)
 
     @property
     def as_list(self):

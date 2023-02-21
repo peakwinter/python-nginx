@@ -39,6 +39,11 @@ upstream php
 {
     server unix:/tmp/php-fcgi.socket;
 }
+map $request_body $tmp_body
+{
+    "" "-";
+    default $request_body;
+}
 server
 {
 listen 80;  # This comment should be present;
@@ -353,6 +358,25 @@ class TestPythonNginx(unittest.TestCase):
     def test_server_without_last_linebreak(self):
         self.assertTrue(nginx.loads(TESTBLOCK_CASE_13) is not None)
         self.assertTrue(nginx.loads(TESTBLOCK_CASE_14) is not None)
+
+    def test_useful_info_on_terminal(self):
+        data = nginx.loads(TESTBLOCK_CASE_2)
+
+        upstream = data.children[0]
+        self.assertEqual(str(upstream), '<nginx.Upstream object (php)>')
+
+        key = upstream.children[0]
+        self.assertEqual(str(key), '<nginx.Key object (server)>')
+
+        nginx_map = data.children[1]
+        self.assertEqual(str(nginx_map), '<nginx.Map object ($request_body $tmp_body)>')
+
+        server = data.children[2]
+        comment = server.children[1]
+        self.assertEqual(str(comment), '<nginx.Comment object (This comment should be present;)>')
+
+        location = server.children[-1]
+        self.assertEqual(str(location), '<nginx.Location object (/)>')
 
 
 if __name__ == '__main__':
